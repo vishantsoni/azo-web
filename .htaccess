@@ -1,0 +1,52 @@
+<IfModule mod_rewrite.c>
+      RewriteEngine On
+      RewriteBase /
+
+      # Enable symlinks
+      Options +FollowSymLinks
+
+      # If the request is for a file that exists, serve it directly
+      RewriteCond %{REQUEST_FILENAME} -f [OR]
+      RewriteCond %{REQUEST_FILENAME} -d
+      RewriteRule ^ - [L]
+
+      # Handle Next.js static files and assets
+      RewriteRule ^_next/(.*)$ _next/$1 [L]
+      RewriteRule ^static/(.*)$ static/$1 [L]
+      RewriteRule ^manifest\.json$ manifest.json [L]
+
+      # Test rule for search - redirect to actual file
+      RewriteRule ^search/([^/]+)/?$ search/[slug].html [L]
+
+      # Test rule for service
+      RewriteRule ^service/(.*)/?$ service/[...slug].html [L]
+
+      # Test rule for booking
+      RewriteRule ^booking/(.*)/?$ booking/[...slug].html [L]
+
+      # Test rule for provider-details
+      RewriteRule ^provider-details/(.*)/?$ provider-details/[...slug].html [L]
+
+      # Test rule for my-service-request-details
+      RewriteRule ^my-service-request-details/(.*)/?$ my-service-request-details/[...slug].html [L]
+
+      # Test rule for blog-details
+      RewriteRule ^blog-details/([^/]+)/?$ blog-details/[slug].html [L]
+
+      # Handle static HTML files
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteCond %{REQUEST_FILENAME} !-d
+      RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+      RewriteRule ^([^/]+)/?$ $1.html [L]
+
+      # Handle directory index files
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteCond %{REQUEST_FILENAME} !-d
+      RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+      RewriteRule ^([^/]+)/?$ $1/index.html [L]
+
+      # Final fallback to 404 page
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteCond %{REQUEST_FILENAME} !-d
+      RewriteRule ^ 404.html [L]
+    </IfModule>

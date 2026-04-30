@@ -1,0 +1,103 @@
+{
+  "name": "AZO",
+  "short_name": "AZO",
+  "description": "Your On-Demand Service Booking Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0277fa",
+  "background_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "icons/favicon-48x48.webp",
+      "sizes": "48x48",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-72x72.webp",
+      "sizes": "72x72",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-96x96.webp",
+      "sizes": "96x96",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-128x128.webp",
+      "sizes": "128x128",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-144x144.webp",
+      "sizes": "144x144",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-152x152.webp",
+      "sizes": "152x152",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-192x192.webp",
+      "sizes": "192x192",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-256x256.webp",
+      "sizes": "256x256",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-384x384.webp",
+      "sizes": "384x384",
+      "type": "image/webp"
+    },
+    {
+      "src": "icons/favicon-512x512.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Home",
+      "url": "/"
+    },
+    {
+      "name": "Services",
+      "url": "/services"
+    },
+    {
+      "name": "Profile",
+      "url": "/profile"
+    }
+  ],
+  "scope": "/",
+  "orientation": "portrait",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "lifestyle"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": "",
+  "screenshots": [
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "eDemand Home Screen"
+    }
+  ],
+  "capture_links": "existing-client-navigate",
+  "handle_links": "auto",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "id": "edemand-pwa",
+  "file_handlers": [],
+  "protocol_handlers": []
+}
