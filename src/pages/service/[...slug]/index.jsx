@@ -18,6 +18,7 @@ if (process.env.NEXT_PUBLIC_ENABLE_SEO === "true") {
     const languageCode = context.query?.lang || "en";
 
     const seoData = await fetchSeoSettings("category-details", lastSlug, languageCode);
+    seoData.props.slug = Array.isArray(slug) ? slug.join("/") : (slug || "");
     return seoData;
   };
 }
@@ -38,7 +39,7 @@ export default function index({
   twitterImage,
   slug,
 }) {
-  const pageUrl = `${process.env.NEXT_PUBLIC_WEB_URL}/service/${slug}`;
+  const pageUrl = slug ? `${process.env.NEXT_PUBLIC_WEB_URL}/service/${slug}` : `${process.env.NEXT_PUBLIC_WEB_URL}/service`;
   return (
     <>
       <MetaData
@@ -46,7 +47,7 @@ export default function index({
         title={title}
         description={description}
         keywords={keywords}
-        pageName={`/service/${slug}`}
+        pageName={slug ? `/service/${slug}` : "/service"}
         // Open Graph
         ogTitle={ogTitle}
         ogDescription={ogDescription}

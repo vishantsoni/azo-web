@@ -49,7 +49,6 @@ const LandingPage = () => {
     if (reduxTheme?.theme) {
       setNextTheme(reduxTheme.theme);
     } else {
-      // If no theme in Redux, set default to light and update Redux
       setNextTheme('light');
       dispatch(setTheme('light'));
     }
@@ -58,39 +57,6 @@ const LandingPage = () => {
   useEffect(() => {
     document.documentElement.dir = currentLanguage?.isRtl ? "rtl" : "ltr";
   }, [currentLanguage?.isRtl]);
-
-  // Handle URL language parameter on component mount
-  useEffect(() => {
-    // Prevent loop during language initialization
-    if (isInitializingLanguage) {
-      return;
-    }
-
-    // Check if there's a language parameter in the URL
-    const urlLangParam = router.query.lang;
-
-    if (urlLangParam && urlLangParam !== currentLanguage?.langCode) {
-      // Find the language object from supported languages
-      const supportedLanguages = [
-        { langCode: 'en', language: 'English', isRtl: false },
-        { langCode: 'hi', language: 'Hindi', isRtl: false },
-        { langCode: 'ur', language: 'Urdu', isRtl: true }
-      ];
-
-      const urlLanguage = supportedLanguages.find(lang =>
-        lang.langCode.toLowerCase() === urlLangParam.toLowerCase()
-      );
-
-      if (urlLanguage) {
-        // Update Redux with URL language
-        dispatch(setReduxLanguage(urlLanguage));
-      } else {
-        console.warn(`⚠️ Unsupported language in URL: ${urlLangParam}`);
-      }
-    }
-  }, [router.query.lang, currentLanguage?.langCode, dispatch, isInitializingLanguage]);
-
-
 
   // Function to get current location from browser
   const getCurrentLocation = () => {
@@ -287,32 +253,14 @@ const LandingPage = () => {
       }
 
       if (urlLangParam) {
-        // If URL has language parameter, use that instead
-        const supportedLanguages = [
-          { langCode: 'en', language: 'English', isRtl: false },
-          { langCode: 'hi', language: 'Hindi', isRtl: false },
-          { langCode: 'ur', language: 'Urdu', isRtl: true }
-        ];
-
-        const urlLanguage = supportedLanguages.find(lang =>
-          lang.langCode.toLowerCase() === urlLangParam.toLowerCase()
-        );
-
-        if (urlLanguage) {
-          langToUse = urlLanguage;
-          dispatch(setReduxLanguage(urlLanguage));
-          dispatch(setReduxLanguage(urlLanguage));
-        } else {
-          langToUse = defaultLang;
-          dispatch(setReduxLanguage(defaultLang));
-          dispatch(setReduxLanguage(defaultLang));
-        }
+        // Since url exists, skip forcing the default one
+        // rely on header / Layout routing to properly apply the url language.
+        langToUse = currentLang;
       } else {
         // Always use API default language when no URL parameter is present
         // This ensures API default takes precedence over persisted state
         langToUse = defaultLang;
         // Update Redux with default language
-        dispatch(setReduxLanguage(defaultLang));
         dispatch(setReduxLanguage(defaultLang));
       }
 
@@ -475,7 +423,7 @@ const LandingPage = () => {
     if ((!locationData?.lat || !locationData?.lng) && !isLoading) {
       fetchSettings();
     }
-  }, [locationData, router, isLoading]);
+  }, [locationData, isLoading]);
 
 
   if (isLoading || isHandlingDisabledLanding) {

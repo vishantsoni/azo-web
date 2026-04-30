@@ -8,10 +8,27 @@ import CustomImageTag from "../ReUseableComponents/CustomImageTag";
 import { useTranslation } from "./TranslationContext";
 import CustomLink from "../ReUseableComponents/CustomLink";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { buildLanguageAwareKey } from "@/lib/react-query-client";
+import { getCustomPagesApi } from "@/api/apiRoutes";
 
 const Footer = () => {
   const t = useTranslation();
   const settingsData = useSelector((state) => state?.settingsData);
+
+  const { data: customPages = [] } = useQuery({
+    queryKey: buildLanguageAwareKey("custom_pages_list"),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        const response = await getCustomPagesApi();
+        return response?.data || [];
+      } catch (e) {
+        return [];
+      }
+    },
+  });
 
   const websettings = settingsData?.settings?.web_settings;
   const general_settings = settingsData?.settings?.general_settings;
@@ -52,15 +69,15 @@ const Footer = () => {
     websettings &&
     general_settings && (
       <footer className="secondary_bg_color text-white py-10 pb-0">
-        <div className={`container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-[80px]`}>
+        <div className={`container mx-auto grid grid-cols-1 md:grid-cols-2 ${customPages.length > 0 ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-8 mb-[80px]`}>
           {/* eDemand Info */}
           <div>
             <CustomLink href="/" preserveLanguage={false}>
-              <div className="w-16 md:w-[160px] h-auto">
+              <div className="w-[160px] h-auto">
                 <CustomImageTag
                   src={websettings?.footer_logo}
                   alt="eDemand Logo"
-                  className="w-full aspect-logo object-cover"
+                  className="w-full aspect-logo object-contain"
                 />
               </div>
             </CustomLink>
@@ -76,7 +93,7 @@ const Footer = () => {
                   target="_blank"
                   key={index}
                   href={social?.url}
-                  className="text-white rounded-full h-[30px] w-[30px] flex items-center justify-center bg-[#FFFFFF1F] hover:primary_bg_color transition-colors duration-300"
+                  className="text-white rounded-full h-[30px] w-[30px] flex items-center justify-center bg-[var(--store-btn-bg)] hover:primary_bg_color transition-colors duration-300"
                 >
                   <CustomImageTag
                     src={social.file}
@@ -158,6 +175,26 @@ const Footer = () => {
             </ul>
           </div>
 
+          {/* Custom Pages */}
+          {customPages.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-4">{t("pages") || "Pages"}</h3>
+              <ul className="space-y-2">
+                {customPages.map((page) => (
+                  <li key={page.id} className="text-base font-extralight">
+                    <CustomLink
+                      href={`/custom-page/${page.slug}`}
+                      preserveLanguage={false}
+                      className="text-white hover:border-b border_color transition-all duration-100"
+                    >
+                      {page.translated_title}
+                    </CustomLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Contact Info */}
           {general_settings?.support_email ||
             general_settings?.phone ||
@@ -225,7 +262,7 @@ const Footer = () => {
                 <Link
                   href={websettings?.playstore_url}
                   target="_blank"
-                  className="flex items-center justify-center gap-1 bg-[#FFFFFF3D] hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm w-full rounded-md icon px-0 py-3"
+                  className="flex items-center justify-center gap-1 store_btn_bg hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm w-full rounded-md icon px-0 py-3"
                 >
                   {playStore}
                   <span>{t("googlePlay")}</span>
@@ -233,7 +270,7 @@ const Footer = () => {
                 <Link
                   href={websettings?.applestore_url}
                   target="_blank"
-                  className="flex items-center justify-center gap-1 bg-[#FFFFFF3D] hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm w-full rounded-md icon px-0 py-3"
+                  className="flex items-center justify-center gap-1 store_btn_bg hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm w-full rounded-md icon px-0 py-3"
                 >
                   {apple}
                   <span>{t("appStore")}</span>

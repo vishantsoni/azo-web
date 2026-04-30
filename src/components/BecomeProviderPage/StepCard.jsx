@@ -3,7 +3,7 @@ const StepCard = ({ data, number }) => {
   const translatedTitle = data?.translated_title ? data?.translated_title : data?.title;
   const translatedDescription = data?.translated_description ? data?.translated_description : data?.description;
   return (
-    <div className="step card_bg p-4 md:p-6 rounded-[30px] flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 rtl:md:space-x-reverse md:space-x-6 w-full md:w-auto mx-auto border border-[#D8E0E6] h-auto md:h-[200px]">
+    <div className="step card_bg p-4 md:p-6 rounded-[30px] flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 rtl:md:space-x-reverse md:space-x-6 w-full md:w-auto mx-auto border border-[var(--neutral-overlay)] h-auto md:h-[200px]">
       {/* Left: Number */}
       <div
         className="text-4xl md:text-6xl font-bold outlined_text"

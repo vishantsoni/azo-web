@@ -19,7 +19,7 @@ const FaqAccordion = ({ faq }) => {
       >
         <div
           className={`accordion_header flex items-center justify-between gap-4 p-5 rounded-t-lg transition-colors duration-300 ease-in-out ${openItem === faq?.id
-            ? "bg-[#29363F] text-white rounded-t-lg"
+            ? "pos_btn_bg text-white rounded-t-lg"
             : "bg-transparent"
             }`}
         >

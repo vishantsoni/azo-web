@@ -2,20 +2,104 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light Theme */
+/* ============================================================
+   LIGHT THEME — All CSS variables (edit here to change colors)
+   ============================================================ */
 :root {
+  /* --- Core Brand Colors --- */
   --primary-color: #0277fa;
   --secondary-color: #000000;
   --light-bg-color: #0277fa12;
   --text-color: #000000;
+
+  /* --- Page / Card Backgrounds --- */
+  --card-bg-color: #ffffff;
+  --provider-card-bg: #F5FAFF;
+
+  /* --- Description / Muted Text --- */
+  --description-text-color: rgba(33, 33, 33, 0.62);
+  --neutral-text-color: #121212;
+
+  /* --- Skeleton / Placeholder --- */
+  --neutral-bg: rgba(33, 33, 33, 0.08);
+  --neutral-overlay: rgba(33, 33, 33, 0.18);
+  --neutral-overlay-light: rgba(33, 33, 33, 0.22);
+
+  /* --- Rating --- */
+  --rating-color: #ff9900;
+  --rating-bg: rgba(255, 153, 0, 0.12);
+
+  /* --- Required Field --- */
+  --required-indicator-color: #ef4444;
+
+  /* --- Booking / Job Status Colors --- */
+  --status-awaiting: #f59e0b;
+  --status-started: #3b82f6;
+  --status-confirmed: #10b981;
+  --status-ended: #6b7280;
+  --status-cancelled: #ef4444;
+  --status-rescheduled: #f97316;
+  --status-completed: #0b9000;
+  --status-default: #6b7280;
+
+  /* --- Orders Done Badge --- */
+  --orders-done-color: #83B807;
+  --orders-done-bg: rgba(131, 184, 7, 0.08);
+
+  /* --- Warning / Notice Banner --- */
+  --warning-bg: #FFEEC5;
+  --warning-text: #B39651;
+  --announcement-bg: #FFF4E5;
+
+  /* --- Chat --- */
+  --chat-received-bg: #F2F1F6;
+  --chat-image-overlay: rgba(0, 0, 0, 0.4);
+  --chat-blocked-user-bg: #FEE2E2;
+  --chat-blocked-user-text: #991B1B;
+  --chat-blocked-provider-bg: #FEF3C7;
+  --chat-blocked-provider-text: #92400E;
+
+  /* --- Auth / Password Strength --- */
+  --password-met-color: #22c55e;
+  --password-unmet-border: #9ca3af;
+  --password-unmet-text: #6b7280;
+
+  /* --- UI Elements --- */
+  --pos-btn-bg: #29363F;
+  --dark-btn-bg: #2D2C2F;
+  --store-btn-bg: rgba(255, 255, 255, 0.24);
+  --toggle-btn-bg: rgba(255, 255, 255, 0.32);
+  --slider-dot-border: #ebf4ff;
+  --app-dark-section-bg: #000000;
+  --hover-dark-bg: #212121;
+
+  /* --- Danger / Delete --- */
+  --danger-bg: rgba(209, 0, 0, 0.08);
+  --danger-color: #D10000;
 }
 
-/* Dark Theme */
+/* ============================================================
+   DARK THEME — Override variables for dark mode
+   ============================================================ */
 .dark {
+  /* --- Core Brand Colors --- */
   --primary-color: #51a7f3;
   --secondary-color: #0d1115;
   --light-bg-color: rgba(13, 17, 21, 1);
   --text-color: #ffffff;
+
+  /* --- Page / Card Backgrounds --- */
+  --card-bg-color: #0d131b;
+  --provider-card-bg: #0d131b;
+
+  /* --- Description / Muted Text --- */
+  --description-text-color: #ffffff;
+
+  /* --- Skeleton / Placeholder --- */
+  --neutral-bg: rgba(255, 255, 255, 0.69);
+
+  /* --- Warning / Notice Banner (dark override) --- */
+  --warning-bg: #FFDA7F;
 }
 
 body[data-scroll-locked] {
@@ -170,11 +254,7 @@ body {
   }
 
   .description_color {
-    color: #2121219e;
-  }
-
-  .dark .description_color {
-    color: #ffffff;
+    color: var(--description-text-color);
   }
 
   .border_color {
@@ -186,11 +266,11 @@ body {
   }
 
   .card_bg {
-    background-color: #fff;
+    background-color: var(--card-bg-color);
   }
 
   .dark .card_bg {
-    background-color: #0d131b;
+    background-color: var(--card-bg-color);
   }
 
   .rating_icon_color {
@@ -284,10 +364,72 @@ body {
   /* Required field indicator - red asterisk after label */
   .is_required::after {
     content: " *";
-    color: #ef4444;
+    color: var(--required-indicator-color);
     font-weight: 500;
   }
+
+  /* ============================================================
+     UTILITY CLASSES — Reusable classes for all color variables
+     Add these to your JSX instead of hardcoded Tailwind colors
+     ============================================================ */
+
+  /* --- Status Badge Colors --- */
+  .status_awaiting    { color: var(--status-awaiting); }
+  .status_started     { color: var(--status-started); }
+  .status_confirmed   { color: var(--status-confirmed); }
+  .status_ended       { color: var(--status-ended); }
+  .status_cancelled   { color: var(--status-cancelled); }
+  .status_rescheduled { color: var(--status-rescheduled); }
+  .status_completed   { color: var(--status-completed); }
+
+  /* --- Warning / Notice Banners --- */
+  .warning_banner {
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+  }
+  .announcement_banner {
+    background-color: var(--announcement-bg);
+  }
+
+  /* --- Chat Bubbles --- */
+  .chat_received_bubble {
+    background-color: var(--chat-received-bg);
+    color: black;
+  }
+  .chat_image_overlay {
+    background-color: var(--chat-image-overlay);
+  }
+  .chat_blocked_user {
+    background-color: var(--chat-blocked-user-bg);
+    color: var(--chat-blocked-user-text);
+  }
+  .chat_blocked_provider {
+    background-color: var(--chat-blocked-provider-bg);
+    color: var(--chat-blocked-provider-text);
+  }
+
+  /* --- Provider / Info Cards --- */
+  .provider_info_card {
+    background-color: var(--provider-card-bg);
+  }
+
+  /* --- Danger / Delete --- */
+  .danger_icon_bg   { background-color: var(--danger-bg); }
+  .danger_icon_text { color: var(--danger-color); }
+
+  /* --- UI Buttons --- */
+  .pos_btn_bg   { background-color: var(--pos-btn-bg); }
+  .dark_btn_bg  { background-color: var(--dark-btn-bg); }
+  .store_btn_bg { background-color: var(--store-btn-bg); }
+
+  /* --- Neutral Overlays --- */
+  .neutral_overlay       { background-color: var(--neutral-overlay); }
+  .neutral_overlay_light { background-color: var(--neutral-overlay-light); }
+
+  /* --- Neutral body text --- */
+  .neutral_text { color: var(--neutral-text-color); }
 }
+
 
 @layer base {
   :root {
@@ -861,6 +1003,11 @@ body {
 
 .chatsWrapper::-webkit-scrollbar {
   width: 4px;
+}
+
+.chatsWrapper {
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain;
 }
 
 /* Track */

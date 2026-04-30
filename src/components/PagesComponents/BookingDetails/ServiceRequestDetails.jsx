@@ -28,6 +28,7 @@ import { setCustomJobData, setTaxValue } from "@/redux/reducers/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import CustomImageTag from "@/components/ReUseableComponents/CustomImageTag";
 import ConfirmDialog from "@/components/ReUseableComponents/Dialogs/ConfirmDialog";
+import ServiceRequestDetailsSkeleton from "@/components/Skeletons/ServiceRequestDetailsSkeleton";
 
 const ServiceRequestDetails = () => {
   const t = useTranslation();
@@ -112,7 +113,7 @@ const ServiceRequestDetails = () => {
 
   const statusName = customJobStatusNames[serviceData?.status];
   const statusColor =
-    customJobStatusColors[serviceData?.status?.toLowerCase()] || "#6b7280";
+    customJobStatusColors[serviceData?.status?.toLowerCase()] || "var(--status-default)";
 
   const handleGoback = () => {
     if (window) {
@@ -233,6 +234,7 @@ const ServiceRequestDetails = () => {
 
             {/* Main Content */}
             <div className="col-span-1 lg:col-span-9">
+              {loading ? <ServiceRequestDetailsSkeleton /> : (
               <div className="flex flex-col gap-6">
                 {/* Header */}
                 <div className="flex items-center justify-between w-full flex-wrap gap-2">
@@ -481,6 +483,7 @@ const ServiceRequestDetails = () => {
                   )}
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>

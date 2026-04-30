@@ -64,6 +64,7 @@ export const getProvidersOnMap = "get_providers_on_map";
 export const getLanguageList = "get_language_list";
 export const getLanguageJsonData = "get_language_json_data";
 export const getPageSettings = "get_page_setting";
+export const getCustomPages = "get_custom_pages";
 
 // register provider apis
 export const registerProvider = "register_provider";
@@ -79,3 +80,7 @@ export const createCashfreeOrder = "cashfree_create_order";
 export const updateFcm = "update_fcm";
 
 export const getUserInfo = "get_user_info";
+
+export const getAddressCustomFields = "get_address_custom_fields";
+
+export const getChatQuestions = "get_chat_questions";

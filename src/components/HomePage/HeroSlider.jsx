@@ -85,12 +85,12 @@ const CustomPagination = ({ totalSlides, currentSlide, goToSlide, isRTL, isPause
   }, [currentSlide, isPaused]);
 
   return (
-    <div className="absolute bottom-24 md:bottom-24 left-1/2 transform -translate-x-1/2 flex z-10 bg-white dark:bg-[#212121] p-2 rounded-full">
+    <div className="absolute bottom-24 md:bottom-24 left-1/2 transform -translate-x-1/2 flex z-10 bg-white dark:bg-[var(--hover-dark-bg)] p-2 rounded-full">
       {Array.from({ length: totalSlides }).map((_, index) => (
         <button
           key={index}
           onClick={() => goToSlide(index)}
-          className={`rounded-full transition-all relative overflow-hidden light_bg_color border border-[#ebf4ff] ${index === currentSlide ? "w-6 h-3" : "w-3 h-3"
+          className={`rounded-full transition-all relative overflow-hidden light_bg_color border border-[var(--slider-dot-border)] ${index === currentSlide ? "w-6 h-3" : "w-3 h-3"
             } ${isRTL ? "ml-2" : "mr-2"} last:m-0`}
           aria-label={`Go to slide ${index + 1}`}
         >
@@ -299,9 +299,9 @@ const HeroSlider = ({ sliderData }) => {
 
 
         {/* Location and Search Section - Always visible for users to change location */}
-        <div className={`light_bg_color ${isSliderData ? "pt-6 -mt-6 sm:mt-0 md:pt-0 md:bg-transparent" : "py-4 mt-0"} searchLocation`}>
+        <div className={`light_bg_color ${isSliderData ? "pt-6 sm:mt-0 md:pt-0 md:bg-transparent" : "py-4 mt-0"} searchLocation`}>
           <div className="container md:mx-auto">
-            <div className={`md:card_bg rounded-xl py-4 md:p-4 relative ${isSliderData ? " md:-mt-8" : "mt-0"} left-0 right-0 mx-auto z-10 max-w-full lg:max-w-4xl flex flex-row items-center justify-between md:border border-[#2121212e] gap-4`}>
+            <div className={`md:card_bg rounded-xl py-4 md:p-4 relative ${isSliderData ? " md:-mt-8" : "mt-0"} left-0 right-0 mx-auto z-10 max-w-full lg:max-w-4xl flex flex-row items-center justify-between md:border border-[var(--neutral-overlay)] gap-4`}>
               {/* Location Section */}
               <div className="card_bg p-3 rounded-[6px] md:rounded-none md:p-0 location flex items-center w-max md:w-1/2 text-center md:text-left" onClick={() => setIsModalOpen(true)}>
                 <div className="flex flex-1 items-center justify-between  w-full">

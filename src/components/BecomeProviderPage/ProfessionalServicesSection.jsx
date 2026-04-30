@@ -115,7 +115,7 @@ const ProfessionalServicesSection = ({ data, categoryData, happyCustomers, total
                 <Link
                   href={providerPanelLink}
                   target="_blank"
-                  className="bg-[#29363F] text-white py-3 px-4 rounded-full flex items-center gap-2 w-fit mt-4 text-base font-medium">
+                  className="pos_btn_bg text-white py-3 px-4 rounded-full flex items-center gap-2 w-fit mt-4 text-base font-medium">
                   {t("getStarted")}
                   <BsArrowRightCircleFill size={20} />
                 </Link>
@@ -155,7 +155,7 @@ const ProfessionalServicesSection = ({ data, categoryData, happyCustomers, total
 
                 {/* Stats badges */}
                 {happyCustomers > 0 && (
-                  <div className="stats-badge customers absolute top-20 -right-4 md:top-24 md:-right-8 bg-white dark:secondary_bg_color border border-[#D8E0E6] rounded-[12px] text-left p-2 md:p-4">
+                  <div className="stats-badge customers absolute top-20 -right-4 md:top-24 md:-right-8 bg-white dark:secondary_bg_color border border-[var(--neutral-overlay)] rounded-[12px] text-left p-2 md:p-4">
                     <p className="text-lg md:text-2xl font-bold mb-2">{formatNumber(happyCustomers)}</p>
                     <p className="text_color opacity-60 font-medium text-sm md:text-base">
                       {t("happyCustomers")}
@@ -164,7 +164,7 @@ const ProfessionalServicesSection = ({ data, categoryData, happyCustomers, total
                 )}
 
                 {totalRating > 0 && (
-                  <div className="stats-badge rating absolute bottom-12 -left-4 md:-left-10 bg-white dark:secondary_bg_color border border-[#D8E0E6] rounded-[12px] text-left p-4">
+                  <div className="stats-badge rating absolute bottom-12 -left-4 md:-left-10 bg-white dark:secondary_bg_color border border-[var(--neutral-overlay)] rounded-[12px] text-left p-4">
                     <p className="text-lg md:text-2xl font-bold mb-2">{totalRating.toFixed(2)} ★</p>
                     <p className="text_color opacity-60 font-medium text-sm md:text-base">
                       {t("overAllRating")}

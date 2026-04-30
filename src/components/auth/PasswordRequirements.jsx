@@ -92,8 +92,8 @@ const PasswordRequirements = ({ password = "", t }) => {
               initial={{ scale: 0.8 }}
               animate={{
                 scale: isMet ? 1 : 0.8,
-                backgroundColor: isMet ? "#22c55e" : "transparent",
-                borderColor: isMet ? "#22c55e" : "#9ca3af",
+                backgroundColor: isMet ? "var(--password-met-color)" : "transparent",
+                borderColor: isMet ? "var(--password-met-color)" : "var(--password-unmet-border)",
               }}
               transition={{ duration: 0.2 }}
               className={`w-4 h-4 rounded-full border-2 flex items-center justify-center`}
@@ -119,7 +119,7 @@ const PasswordRequirements = ({ password = "", t }) => {
             </motion.div>
             <motion.span
               animate={{
-                color: isMet ? "#22c55e" : "#6b7280",
+                color: isMet ? "var(--password-met-color)" : "var(--password-unmet-text)",
               }}
               transition={{ duration: 0.2 }}
               className="text-xs"

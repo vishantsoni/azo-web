@@ -211,7 +211,7 @@ export default function handler(req, res) {
   // Security Layer 4: Origin/Referrer Validation
   // Only allow requests from same origin (helps prevent direct browser access)
   const origin = req.headers.origin || req.headers.referer;
-  const host = req.headers.host;
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
 
   // Allow if:
   // 1. No origin/referer (service worker context - referrer might not be set)

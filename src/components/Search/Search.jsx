@@ -409,7 +409,6 @@ const Search = () => {
                                 <CustomImageTag
                                   src={service?.provider?.image}
                                   alt={`${translatedUsername} - ${translatedCompanyName}`}
-                                  placeholder={placeholderImage}
                                   w={0}
                                   h={0}
                                   imgClassName="w-full h-full object-cover rounded-lg"

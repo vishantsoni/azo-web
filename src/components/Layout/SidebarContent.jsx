@@ -1,6 +1,5 @@
-import { memo } from "react";
-import { useDispatch } from "react-redux";
-import { MdClose } from "react-icons/md";
+import { memo, useState } from "react";
+import { MdClose, MdNotificationsNone, MdKeyboardArrowDown } from "react-icons/md";
 import { SheetClose } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -12,7 +11,6 @@ import {
 } from "react-icons/io5";
 import { CiBookmarkCheck } from "react-icons/ci";
 import { FaRegCalendarCheck } from "react-icons/fa";
-import { MdNotificationsNone } from "react-icons/md";
 import {
   Select,
   SelectContent,
@@ -21,8 +19,26 @@ import {
 } from "@/components/ui/select";
 import CustomImageTag from "../ReUseableComponents/CustomImageTag";
 import CustomLink from "../ReUseableComponents/CustomLink";
-import { placeholderImage } from "@/utils/Helper";
+import Link from "next/link";
+import { placeholderImage, useIsDarkMode } from "@/utils/Helper";
 import { VscTools } from "react-icons/vsc";
+import { useQuery } from "@tanstack/react-query";
+import { buildLanguageAwareKey } from "@/lib/react-query-client";
+import { getCustomPagesApi } from "@/api/apiRoutes";
+
+// Reusable accordion row header
+const AccordionRow = ({ label, isOpen, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className="w-full p-4 border-b description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between"
+  >
+    <span className="text-base">{label}</span>
+    <MdKeyboardArrowDown
+      size={20}
+      className={`text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+    />
+  </button>
+);
 
 // Memoized Sidebar Content Component
 const SidebarContent = memo(
@@ -53,403 +69,466 @@ const SidebarContent = memo(
     toggleTheme,
     // Web settings
     websettings,
+    general_settings,
     // Navigation
     navigationItems = [],
     hasLatLong = false,
     locationData,
     setIsLocationModalOpen,
   }) => {
-    const dispatch = useDispatch();
+    const isDarkMode = useIsDarkMode();
+
+    const [openSections, setOpenSections] = useState({
+      quickLinks: false,
+      customPages: false,
+    });
+
+    const toggleSection = (key) => {
+      setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const { data: customPages = [] } = useQuery({
+      queryKey: buildLanguageAwareKey("custom_pages_list"),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      queryFn: async () => {
+        try {
+          const response = await getCustomPagesApi();
+          return response?.data || [];
+        } catch {
+          return [];
+        }
+      },
+    });
+
+    const translatedCopyrightDetails =
+      general_settings?.translated_copyright_details ||
+      general_settings?.copyright_details;
+
+    const hasAppSection =
+      websettings?.app_section_status === "1" ||
+      websettings?.app_section_status === 1;
+
+    const hasSocialMedia = websettings?.social_media?.length > 0;
+
+    const quickLinks = [
+      { href: "/about-us", label: t("aboutUs") },
+      { href: "/contact-us", label: t("contactUs") },
+      { href: "/faqs", label: t("faqs") },
+      { href: "/blogs", label: t("blogs") },
+      { href: "/sitemap", label: t("sitemap") || "Sitemap" },
+      { href: "/terms-and-conditions", label: t("termsAndcondition") },
+      { href: "/privacy-policy", label: t("privacyPolicy") },
+    ];
+
+    // Shared classes for accordion child links
+    const accordionLinkClass = (active) =>
+      `flex items-center p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 text-sm description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:primary_text_color transition-colors duration-150 ${
+        active ? "light_bg_color !primary_text_color font-medium" : ""
+      }`;
 
     return (
       <div className="flex flex-col h-full">
-        {/* Logo and Close Button */}
+        {/* ── Logo + Close ──────────────────────────────────────── */}
         <div className="flex items-center justify-between p-4 border-b">
-          <div className="w-60 h-24">
-            <CustomImageTag
-              src={websettings?.web_logo || "/logo.png"}
-              alt={t("logo")}
-              className="w-full aspect-logo object-contain"
-            />
-          </div>
+          <CustomImageTag
+            src={isDarkMode ? websettings?.footer_logo : websettings?.web_logo}
+            alt={t("logo")}
+            className="h-[40px] md:h-[60px] aspect-logo max-w-[220px] safari-logo"
+          />
           <SheetClose asChild>
-            <button className="description_color hover:text-gray-700">
+            <button className="description_color hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
               <MdClose size={24} />
             </button>
           </SheetClose>
         </div>
 
-        {/* Navigation Links */}
+        {/* ── Scrollable Body ───────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col">
-            {/* Location Display - Mobile */}
-            {!(pathName === "/" || pathName === "/home") && (
-              <div
-                className="p-4 border-b description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2 cursor-pointer"
-                onClick={() => setIsLocationModalOpen(true)}
-              >
-                <IoLocationSharp
-                  size={20}
-                  className="primary_text_color min-w-[20px]"
-                />
-                <span className="truncate text-base font-medium">
-                  {hasLatLong && locationData?.locationAddress
-                    ? locationData.locationAddress
-                    : t("addLocation")}
-                </span>
-              </div>
-            )}
-            {navigationItems.map((item) => (
-              <CustomLink
-                key={item.key}
-                href={item.href}
-                className={`p-4 border-b description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between ${pathName === item.href || (item.key === 'home' && pathName === '/')
-                  ? "light_bg_color !primary_text_color"
+
+          {/* Location Display */}
+          {!(pathName === "/" || pathName === "/home") && (
+            <div
+              className="p-4 border-b description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2 cursor-pointer"
+              onClick={() => setIsLocationModalOpen(true)}
+            >
+              <IoLocationSharp size={20} className="primary_text_color min-w-[20px]" />
+              <span className="truncate text-base font-medium">
+                {hasLatLong && locationData?.locationAddress
+                  ? locationData.locationAddress
+                  : t("addLocation")}
+              </span>
+            </div>
+          )}
+
+          {/* Primary Navigation — direct links, no arrow */}
+          {navigationItems.map((item) => (
+            <CustomLink
+              key={item.key}
+              href={item.href}
+              className={`p-4 border-b text-base description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center ${
+                pathName === item.href || (item.key === "home" && pathName === "/")
+                  ? "light_bg_color !primary_text_color font-medium"
                   : ""
-                  }`}
-                title={t(item.labelKey)}
-              >
-                <span>{t(item.labelKey)}</span>
-                <span className="text-gray-400">›</span>
-              </CustomLink>
-            ))}
+              }`}
+              title={t(item.labelKey)}
+            >
+              {t(item.labelKey)}
+            </CustomLink>
+          ))}
 
-            {/* Become Provider Link - Only show if enabled */}
-            {websettings?.show_become_provider_page && (
-              <CustomLink
-                href="/become-provider"
-                className={`p-4 border-b description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between ${pathName === "/become-provider"
-                  ? "light_bg_color !primary_text_color"
+          {/* Become Provider — direct link, no arrow */}
+          {websettings?.show_become_provider_page && (
+            <CustomLink
+              href="/become-provider"
+              className={`p-4 border-b text-base description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center ${
+                pathName === "/become-provider"
+                  ? "light_bg_color !primary_text_color font-medium"
                   : ""
-                  }`}
-                title={t("becomeProvider")}
-              >
-                <span>{t("becomeProvider")}</span>
-                <span className="text-gray-400">›</span>
-              </CustomLink>
-            )}
+              }`}
+              title={t("becomeProvider")}
+            >
+              {t("becomeProvider")}
+            </CustomLink>
+          )}
 
-            {/* Settings Section - Dark Mode & Language */}
-            <div className="mt-auto">
-              {/* Dark Mode Toggle */}
-              <div className="flex items-center justify-between p-4 border-b">
-                <span className="text-base font-medium description_color dark:text-gray-300">
-                  {t("darkMode")}
-                </span>
-                <button
-                  onClick={toggleTheme}
-                  className="w-12 h-6 bg-gray-300 dark:bg-gray-600 rounded-full p-1 flex items-center justify-between cursor-pointer relative"
+          {/* ── Quick Links accordion ─────────────────────────── */}
+          <AccordionRow
+            label={t("quickLinks")}
+            isOpen={openSections.quickLinks}
+            onToggle={() => toggleSection("quickLinks")}
+          />
+          {openSections.quickLinks && (
+            <div className="bg-gray-50 dark:bg-gray-800">
+              {quickLinks.map((link) => (
+                <CustomLink
+                  key={link.href}
+                  href={link.href}
+                  preserveLanguage={false}
+                  className={accordionLinkClass(pathName === link.href)}
                 >
-                  <div
-                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform absolute ${theme === "dark" ? "translate-x-6" : "translate-x-0"
-                      }`}
-                  ></div>
-                </button>
-              </div>
+                  {link.label}
+                </CustomLink>
+              ))}
+            </div>
+          )}
 
-              {/* Language Selector */}
-              <div className="p-4 border-b">
-                <div className="mb-2">
-                  <span className="text-base font-medium description_color dark:text-gray-300">
-                    {t("language")}
-                  </span>
-                </div>
-                <Select
-                  open={isMobileLangOpen}
-                  onOpenChange={setIsMobileLangOpen}
-                  value={selectedLanguage}
-                  onValueChange={handleLanguageChange}
-                >
-                  <SelectTrigger className="w-full card_bg border border-gray-300 dark:border-gray-600 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      {!isLoadingLangs && !langError && (
-                        <CustomImageTag
-                          src={
-                            languages.find(
-                              (lang) => lang.langCode === selectedLanguage,
-                            )?.image
-                          }
-                          alt={getCurrentLanguageDisplay}
-                          width={0}
-                          height={0}
-                          className="w-5 aspect-square rounded-sm object-cover"
-                        />
+          {/* ── Custom Pages accordion (only if pages exist) ──── */}
+          {customPages.length > 0 && (
+            <>
+              <AccordionRow
+                label={t("pages") || "Pages"}
+                isOpen={openSections.customPages}
+                onToggle={() => toggleSection("customPages")}
+              />
+              {openSections.customPages && (
+                <div className="bg-gray-50 dark:bg-gray-800">
+                  {customPages.map((page) => (
+                    <CustomLink
+                      key={page.id}
+                      href={`/custom-page/${page.slug}`}
+                      preserveLanguage={false}
+                      className={accordionLinkClass(
+                        pathName === `/custom-page/${page.slug}`
                       )}
-                      <span>{getCurrentLanguageDisplay}</span>
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent
-                    className="z-[9999] min-w-[200px] card_bg border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"
-                    onPointerDownOutside={() => setIsMobileLangOpen(false)}
-                  >
-                    {isLoadingLangs ? (
-                      <SelectItem
-                        value="loading"
-                        disabled
-                        className="flex items-center gap-2 py-3 px-4 text-gray-500"
-                      >
-                        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                        <span>{t("loading")}...</span>
-                      </SelectItem>
-                    ) : langError ? (
-                      <SelectItem
-                        value="error"
-                        disabled
-                        className="flex items-center gap-2 py-3 px-4 text-red-500"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span>{t("errorLoadingLanguages")}</span>
-                      </SelectItem>
-                    ) : (
-                      languages.map((lang) => (
-                        <SelectItem
-                          key={lang.id}
-                          value={lang.langCode}
-                          className={`cursor-pointer py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 flex items-center gap-3 w-full ${selectedLanguage === lang.langCode
-                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                            : "text-gray-700 dark:text-gray-300"
-                            }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <CustomImageTag
-                              src={lang.image}
-                              alt={lang.language}
-                              width={0}
-                              height={0}
-                              className="w-6 aspect-square rounded-sm object-cover border border-gray-200 dark:border-gray-600 mr-2"
-                            />
-                            <span>{lang.language}</span>
-                          </div>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                    >
+                      {page.translated_title}
+                    </CustomLink>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── Download App ─────────────────────────────────── */}
+          {hasAppSection && (
+            <div className="border-t px-4 py-4">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">
+                {t("downloadCustomerApps")}
+              </p>
+              <div className="grid grid-cols-2 gap-2.5">
+                <Link
+                  href={websettings?.playstore_url || "#"}
+                  target="_blank"
+                  className="flex items-center justify-center gap-1.5 primary_bg_color text-white text-xs font-semibold rounded-lg py-2.5 px-2 hover:opacity-90 transition-opacity"
+                >
+                  <svg width="15" height="15" viewBox="0 0 33 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                    <path d="M17.772 15.4879L21.7147 11.5453L8.98 4.38793C8.136 3.93193 7.34533 3.86793 6.65199 4.3666L17.772 15.4879ZM22.3867 20.1039L26.4853 17.7986C27.2853 17.3506 27.724 16.7159 27.724 16.0119C27.724 15.3093 27.2853 14.6733 26.4867 14.2253L22.776 12.1413L18.5987 16.3173L22.3867 20.1039ZM5.96666 5.33593C5.88133 5.5986 5.83333 5.89193 5.83333 6.21327V25.8199C5.83333 26.3279 5.94533 26.7653 6.14799 27.1133L16.944 16.3159L5.96666 5.33593ZM17.772 17.1426L7.03599 27.8799C7.24133 27.9586 7.46266 27.9999 7.69599 27.9999C8.11199 27.9999 8.54533 27.8773 8.98666 27.6319L21.3267 20.7026L17.772 17.1426Z" />
+                  </svg>
+                  <span>{t("googlePlay")}</span>
+                </Link>
+                <Link
+                  href={websettings?.applestore_url || "#"}
+                  target="_blank"
+                  className="flex items-center justify-center gap-1.5 primary_bg_color text-white text-xs font-semibold rounded-lg py-2.5 px-2 hover:opacity-90 transition-opacity"
+                >
+                  <svg width="15" height="15" viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                    <path d="M26.22 22.4146C25.8508 23.2753 25.3946 24.096 24.8587 24.864C24.1427 25.8866 23.5547 26.5933 23.104 26.9866C22.404 27.6293 21.652 27.9599 20.848 27.9786C20.272 27.9786 19.576 27.8146 18.7653 27.4813C17.952 27.1493 17.2053 26.9866 16.5213 26.9866C15.8053 26.9866 15.0373 27.1493 14.2147 27.4813C13.3933 27.8146 12.7293 27.9893 12.2213 28.0053C11.452 28.0386 10.6827 27.6999 9.916 26.9866C9.42667 26.5599 8.81467 25.8266 8.08 24.7893C7.29333 23.6839 6.64667 22.3973 6.14 20.9346C5.59733 19.352 5.32533 17.8213 5.32533 16.3386C5.32533 14.6413 5.692 13.176 6.42667 11.9493C6.98233 10.9859 7.77673 10.1819 8.73333 9.61462C9.67662 9.04884 10.7534 8.7442 11.8533 8.73195C12.4667 8.73195 13.2707 8.92128 14.2667 9.29462C15.2627 9.66795 15.9027 9.85728 16.1813 9.85728C16.392 9.85728 17.1 9.63462 18.3053 9.19328C19.4427 8.78395 20.4027 8.61462 21.1893 8.68128C23.3227 8.85328 24.924 9.69328 25.9893 11.208C24.0827 12.3639 23.14 13.9813 23.1587 16.0573C23.1747 17.6746 23.7627 19.02 24.9147 20.088C25.424 20.5753 26.0182 20.9653 26.668 21.2386C26.5267 21.648 26.3773 22.0386 26.22 22.4146ZM21.3307 3.17328C21.3307 4.43995 20.8667 5.62395 19.9453 6.71862C18.8307 8.01995 17.484 8.77328 16.024 8.65462C16.0049 8.49534 15.9956 8.33504 15.996 8.17462C15.996 6.95728 16.524 5.65595 17.4667 4.59062C17.936 4.05195 18.5333 3.60262 19.2573 3.24528C19.98 2.89328 20.6627 2.69862 21.3053 2.66528C21.3227 2.83595 21.3307 3.00528 21.3307 3.17328Z" />
+                  </svg>
+                  <span>{t("appStore")}</span>
+                </Link>
               </div>
             </div>
+          )}
 
-            {/* Account Section */}
-            <div className="flex flex-col justify-between h-full">
-              {isLoggedIn ? (
-                <div className="">
-                  <button
-                    onClick={() => toggleDropdown("account")}
-                    className="w-full p-4 description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-[40px] h-[40px]">
-                        <AvatarImage
-                          src={
-                            userData?.image ? userData?.image : placeholderImage
-                          }
-                          alt={userData?.username}
-                        />
-                        <AvatarFallback>
-                          {userData?.username
-                            ?.split(" ")
-                            .map((word) => word[0]?.toUpperCase())
-                            .slice(0, 2)
-                            .join("") || "NA"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="text-base font-semibold line-clamp-1 text-left">
-                          {userData?.username}
-                        </div>
-                        <div className="text-sm font-normal description_color text-left">
-                          {userData?.email}
-                        </div>
+          {/* ── Social Media ─────────────────────────────────── */}
+          {hasSocialMedia && (
+            <div className={`px-4 py-4 flex flex-wrap gap-2.5 ${hasAppSection ? "border-t" : "border-t"}`}>
+              {websettings.social_media.map((social, index) => (
+                <Link
+                  key={index}
+                  href={social?.url}
+                  target="_blank"
+                  className="text-white rounded-full h-[30px] w-[30px] flex items-center justify-center primary_bg_color hover:opacity-80 transition-opacity duration-200"
+                >
+                  <CustomImageTag
+                    src={social.file}
+                    alt="social"
+                    className="aspect-square w-[30px] rounded-full"
+                  />
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* ── Dark Mode & Language ─────────────────────────── */}
+          <div className="border-t">
+            <div className="flex items-center justify-between p-4 border-b">
+              <span className="text-base description_color dark:text-gray-300">
+                {t("darkMode")}
+              </span>
+              <button
+                onClick={toggleTheme}
+                className="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full relative flex items-center cursor-pointer transition-colors duration-300"
+                aria-label="Toggle dark mode"
+              >
+                <div
+                  className={`w-4 h-4 bg-white rounded-full shadow-md absolute transition-transform duration-200 ${
+                    theme === "dark" ? "translate-x-[22px]" : "translate-x-[3px]"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="p-4 border-b">
+              <span className="block text-base description_color dark:text-gray-300 mb-2.5">
+                {t("language")}
+              </span>
+              <Select
+                open={isMobileLangOpen}
+                onOpenChange={setIsMobileLangOpen}
+                value={selectedLanguage}
+                onValueChange={handleLanguageChange}
+              >
+                <SelectTrigger className="w-full card_bg border border-gray-300 dark:border-gray-600 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    {!isLoadingLangs && !langError && (
+                      <CustomImageTag
+                        src={languages.find((l) => l.langCode === selectedLanguage)?.image}
+                        alt={getCurrentLanguageDisplay}
+                        width={0}
+                        height={0}
+                        className="w-5 aspect-square rounded-sm object-cover"
+                      />
+                    )}
+                    <span className="text-sm">{getCurrentLanguageDisplay}</span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent
+                  className="z-[9999] min-w-[200px] card_bg border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"
+                  onPointerDownOutside={() => setIsMobileLangOpen(false)}
+                >
+                  {isLoadingLangs ? (
+                    <SelectItem value="loading" disabled className="py-3 px-4 text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                        <span>{t("loading")}...</span>
                       </div>
-                    </div>
-                    <span
-                      className={`transform transition-transform ${dropdownStates.account ? "rotate-90" : ""
-                        }`}
-                    >
-                      ›
-                    </span>
-                  </button>
-                  {dropdownStates.account && (
-                    <div className="bg-gray-50 dark:bg-gray-800">
-                      <CustomLink
-                        href="/general-bookings"
-                        className={`flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${pathName === "/general-bookings"
-                          ? "light_bg_color !primary_text_color"
-                          : ""
-                          }`}
-                      >
-                        <span
-                          className={
-                            pathName === "/general-bookings"
-                              ? "primary_text_color"
-                              : ""
-                          }
-                        >
-                          <FaRegCalendarCheck size={24} />
-                        </span>
-                        <span className="text-base">{t("bookings")}</span>
-                      </CustomLink>
-
-                      <button
-                        onClick={() => router.push("/chats")}
-                        className={`w-full flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${pathName === "/chats"
-                          ? "light_bg_color !primary_text_color"
-                          : ""
-                          }`}
-                      >
-                        <span
-                          className={
-                            pathName === "/chats" ? "primary_text_color" : ""
-                          }
-                        >
-                          <IoChatboxEllipsesOutline size={24} />
-                        </span>
-                        <span className="text-base">{t("chats")}</span>
-                      </button>
-
-                      <CustomLink
-                        href="/notifications"
-                        className={`flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${pathName === "/notifications"
-                          ? "light_bg_color !primary_text_color"
-                          : ""
-                          }`}
-                      >
-                        <span
-                          className={
-                            pathName === "/notifications"
-                              ? "primary_text_color"
-                              : ""
-                          }
-                        >
-                          <MdNotificationsNone size={24} />
-                        </span>
-                        <span className="text-base">{t("notifications")}</span>
-                      </CustomLink>
-
-                      <CustomLink
-                        href="/bookmarks"
-                        className={`flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${pathName === "/bookmarks"
-                          ? "light_bg_color !primary_text_color"
-                          : ""
-                          }`}
-                      >
-                        <span
-                          className={
-                            pathName === "/bookmarks"
-                              ? "primary_text_color"
-                              : ""
-                          }
-                        >
-                          <CiBookmarkCheck size={24} />
-                        </span>
-                        <span className="text-base">{t("bookmarks")}</span>
-                      </CustomLink>
-
-                      {hasLatLong && (
-                        <CustomLink
-                          href="/my-services-requests"
-                          className={`flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${pathName === "/my-services-requests"
-                            ? "light_bg_color !primary_text_color"
-                            : ""
-                            }`}
-                        >
-                          <span
-                            className={
-                              pathName === "/my-services-requests"
-                                ? "primary_text_color"
-                                : ""
-                            }
-                          >
-                            <VscTools size={24} />
-                          </span>
-                          <span className="text-base">{t("myServiceRequests")}</span>
-                        </CustomLink>
-                      )}
-
-                      <CustomLink
-                        href="/addresses"
-                        className={`flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${pathName === "/addresses"
-                          ? "light_bg_color !primary_text_color"
-                          : ""
-                          }`}
-                      >
-                        <span
-                          className={
-                            pathName === "/addresses"
-                              ? "primary_text_color"
-                              : ""
-                          }
-                        >
-                          <IoLocationOutline size={24} />
-                        </span>
-                        <span className="text-base">{t("addresses")}</span>
-                      </CustomLink>
-
-                      <CustomLink
-                        href="/payment-history"
-                        className={`flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${pathName === "/payment-history"
-                          ? "light_bg_color !primary_text_color"
-                          : ""
-                          }`}
-                      >
-                        <span
-                          className={
-                            pathName === "/payment-history"
-                              ? "primary_text_color"
-                              : ""
-                          }
-                        >
-                          <IoCardOutline size={24} />
-                        </span>
-                        <span className="text-base">{t("paymentHistory")}</span>
-                      </CustomLink>
-
-                      <button
-                        onClick={handleOpenLogoutDialog}
-                        className="w-full flex items-center gap-4 p-4 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <span className="primary_text_color">
-                          <IoExitOutline size={24} />
-                        </span>
-                        <span className="text-base">{t("logout")}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="p-4">
-                  {isBecomeProviderPage && isRegisterAsProviderAllow ? (
-                    <button
-                      className="w-full text-center bg-[#29363F] px-4 py-2 text-white rounded-lg flex items-center justify-center gap-2 hover:primary_bg_color transition-all duration-300"
-                      onClick={handleOpenRegisterAsProviderModal}
-                    >
-                      {t("registerAsProvider")}
-                    </button>
+                    </SelectItem>
+                  ) : langError ? (
+                    <SelectItem value="error" disabled className="py-3 px-4 text-red-500">
+                      {t("errorLoadingLanguages")}
+                    </SelectItem>
                   ) : (
-                    <button
-                      className="w-full primary_bg_color px-4 py-2 text-white rounded-lg"
-                      onClick={handleOpen}
-                    >
-                      {t("login")}
-                    </button>
+                    languages.map((lang) => (
+                      <SelectItem
+                        key={lang.id}
+                        value={lang.langCode}
+                        className={`cursor-pointer py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 ${
+                          selectedLanguage === lang.langCode
+                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                            : "text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <CustomImageTag
+                            src={lang.image}
+                            alt={lang.language}
+                            width={0}
+                            height={0}
+                            className="w-6 aspect-square rounded-sm object-cover border border-gray-200 dark:border-gray-600"
+                          />
+                          <span>{lang.language}</span>
+                        </div>
+                      </SelectItem>
+                    ))
                   )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* ── Account Section ──────────────────────────────── */}
+          {isLoggedIn ? (
+            <div>
+              <button
+                onClick={() => toggleDropdown("account")}
+                className="w-full p-4 border-b description_color dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-[38px] h-[38px]">
+                    <AvatarImage
+                      src={userData?.image}
+                      alt={userData?.username}
+                      onError={placeholderImage}
+                    />
+                    <AvatarFallback>
+                      {userData?.username
+                        ?.split(" ")
+                        .map((w) => w[0]?.toUpperCase())
+                        .slice(0, 2)
+                        .join("") || "NA"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold line-clamp-1">{userData?.username}</p>
+                    <p className="text-xs font-normal description_color">{userData?.email}</p>
+                  </div>
+                </div>
+                <MdKeyboardArrowDown
+                  size={20}
+                  className={`text-gray-400 transition-transform duration-200 ${
+                    dropdownStates.account ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {dropdownStates.account && (
+                <div className="bg-gray-50 dark:bg-gray-800">
+                  <CustomLink
+                    href="/general-bookings"
+                    className={`flex items-center gap-3.5 p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      pathName === "/general-bookings" ? "light_bg_color !primary_text_color" : ""
+                    }`}
+                  >
+                    <FaRegCalendarCheck size={20} className={pathName === "/general-bookings" ? "primary_text_color" : ""} />
+                    <span className="text-sm">{t("bookings")}</span>
+                  </CustomLink>
+
+                  <button
+                    onClick={() => router.push("/chats")}
+                    className={`w-full flex items-center gap-3.5 p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      pathName === "/chats" ? "light_bg_color !primary_text_color" : ""
+                    }`}
+                  >
+                    <IoChatboxEllipsesOutline size={20} className={pathName === "/chats" ? "primary_text_color" : ""} />
+                    <span className="text-sm">{t("chats")}</span>
+                  </button>
+
+                  <CustomLink
+                    href="/notifications"
+                    className={`flex items-center gap-3.5 p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      pathName === "/notifications" ? "light_bg_color !primary_text_color" : ""
+                    }`}
+                  >
+                    <MdNotificationsNone size={20} className={pathName === "/notifications" ? "primary_text_color" : ""} />
+                    <span className="text-sm">{t("notifications")}</span>
+                  </CustomLink>
+
+                  <CustomLink
+                    href="/bookmarks"
+                    className={`flex items-center gap-3.5 p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      pathName === "/bookmarks" ? "light_bg_color !primary_text_color" : ""
+                    }`}
+                  >
+                    <CiBookmarkCheck size={20} className={pathName === "/bookmarks" ? "primary_text_color" : ""} />
+                    <span className="text-sm">{t("bookmarks")}</span>
+                  </CustomLink>
+
+                  {hasLatLong && (
+                    <CustomLink
+                      href="/my-services-requests"
+                      className={`flex items-center gap-3.5 p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                        pathName === "/my-services-requests" ? "light_bg_color !primary_text_color" : ""
+                      }`}
+                    >
+                      <VscTools size={20} className={pathName === "/my-services-requests" ? "primary_text_color" : ""} />
+                      <span className="text-sm">{t("myServiceRequests")}</span>
+                    </CustomLink>
+                  )}
+
+                  <CustomLink
+                    href="/addresses"
+                    className={`flex items-center gap-3.5 p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      pathName === "/addresses" ? "light_bg_color !primary_text_color" : ""
+                    }`}
+                  >
+                    <IoLocationOutline size={20} className={pathName === "/addresses" ? "primary_text_color" : ""} />
+                    <span className="text-sm">{t("addresses")}</span>
+                  </CustomLink>
+
+                  <CustomLink
+                    href="/payment-history"
+                    className={`flex items-center gap-3.5 p-3.5 pl-8 border-b border-gray-100 dark:border-gray-700/60 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      pathName === "/payment-history" ? "light_bg_color !primary_text_color" : ""
+                    }`}
+                  >
+                    <IoCardOutline size={20} className={pathName === "/payment-history" ? "primary_text_color" : ""} />
+                    <span className="text-sm">{t("paymentHistory")}</span>
+                  </CustomLink>
+
+                  <button
+                    onClick={handleOpenLogoutDialog}
+                    className="w-full flex items-center gap-3.5 p-3.5 pl-8 description_color dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <IoExitOutline size={20} className="primary_text_color" />
+                    <span className="text-sm">{t("logout")}</span>
+                  </button>
                 </div>
               )}
             </div>
-          </div>
+          ) : (
+            <div className="p-4 border-b">
+              {isBecomeProviderPage && isRegisterAsProviderAllow ? (
+                <button
+                  className="w-full pos_btn_bg px-4 py-2.5 text-white rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                  onClick={handleOpenRegisterAsProviderModal}
+                >
+                  {t("registerAsProvider")}
+                </button>
+              ) : (
+                <button
+                  className="w-full primary_bg_color px-4 py-2.5 text-white rounded-lg hover:opacity-90 transition-opacity"
+                  onClick={handleOpen}
+                >
+                  {t("login")}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ── Copyright ────────────────────────────────────── */}
+          {translatedCopyrightDetails && (
+            <div className="border-t px-4 py-4 text-center">
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed">
+                {translatedCopyrightDetails}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
-  },
+  }
 );
 
 SidebarContent.displayName = "SidebarContent";

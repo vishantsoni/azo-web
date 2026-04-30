@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
 import { useTranslation } from '../Layout/TranslationContext';
-import { MdClose } from 'react-icons/md';
+import { MdClose, MdGetApp } from 'react-icons/md';
 
 /**
  * PWA Install Button Component
@@ -21,6 +21,22 @@ export default function PWAInstallButton() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [isPwaEnabled, setIsPwaEnabled] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
 
   // Cookie names for tracking user preferences
   const PWA_DISMISSED_COOKIE = 'pwa_install_dismissed';
@@ -171,22 +187,54 @@ export default function PWAInstallButton() {
   // Show install button based on our state which respects cookies
   return (
     <>
-      <div className="fixed bottom-20 right-2 z-50 flex items-end">
-        <button
-          onClick={handleInstallClick}
-          className="flex items-center space-x-2  primary_bg_color px-4 py-2 text-white shadow-lg rounded-l-md"
-          aria-label={`${t("install")} ${process.env.NEXT_PUBLIC_APP_NAME}`}
+      <div ref={containerRef} className="fixed right-0 rtl:left-0 rtl:right-auto top-1/2 -translate-y-1/2 z-50">
+        {/* Container expands automatically to the left on hover or click */}
+        <div 
+          className="group flex items-center card_bg shadow-[-4px_4px_15px_rgb(0,0,0,0.12)] p-1 ltr:pr-0 rtl:pl-0 rounded-l-full rtl:rounded-r-full rtl:rounded-l-none border border-r-0 border-gray-200 dark:border-gray-800 cursor-pointer overflow-hidden transition-shadow hover:shadow-[-6px_6px_20px_rgb(0,0,0,0.15)]"
+          onClick={() => {
+            if (!isExpanded) setIsExpanded(true);
+          }}
         >
-          <span>{isIOS ? t("addToHomeScreen") : `${t("install")} ${process.env.NEXT_PUBLIC_APP_NAME}`}</span>
-        </button>
+          
+          <button
+            onClick={(e) => {
+              if (!isExpanded) {
+                e.preventDefault();
+                setIsExpanded(true);
+              } else {
+                handleInstallClick();
+              }
+            }}
+            className="flex items-center primary_bg_color text-white shadow-sm rounded-l-full rtl:rounded-r-full rtl:rounded-l-none transition-all active:scale-95 hover:opacity-90 font-medium text-sm"
+            aria-label={`${t("install")} ${process.env.NEXT_PUBLIC_APP_NAME}`}
+          >
+            {/* The Icon is always fixed size */}
+            <div className="w-10 h-10 flex shrink-0 items-center justify-center rounded-full">
+              <MdGetApp size={22} />
+            </div>
 
-        <button
-          onClick={handleCloseButton}
-          className="bg-black text-white py-2 px-4 w-6 h-full flex items-center justify-center rounded-r-md description_color"
-          aria-label={t("close")}
-        >
-          <MdClose size={24} />
-        </button>
+            {/* The text has max-width transition */}
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap flex items-center ${isExpanded ? 'max-w-[250px] opacity-100' : 'max-w-0 opacity-0 group-hover:max-w-[250px] group-hover:opacity-100'}`}>
+              <span className="ltr:pr-5 rtl:pl-5 block">
+                {isIOS ? t("addToHomeScreen") : `${t("install")} ${process.env.NEXT_PUBLIC_APP_NAME}`}
+              </span>
+            </div>
+          </button>
+
+          {/* Close button with max-width transition */}
+          {/* <div className={`transition-all duration-500 ease-in-out flex items-center overflow-hidden ${isExpanded ? 'max-w-[50px] opacity-100' : 'max-w-0 opacity-0 group-hover:max-w-[50px] group-hover:opacity-100'}`}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseButton();
+              }}
+              className="w-8 h-8 flex shrink-0 items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded-full transition-all focus:outline-none ml-1 mr-1"
+              aria-label={t("close")}
+            >
+              <MdClose size={18} />
+            </button>
+          </div> */}
+        </div>
       </div>
 
       {/* iOS Installation Guide Modal */}

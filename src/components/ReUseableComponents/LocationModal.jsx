@@ -279,7 +279,7 @@ const LocationModal = ({
                 <div className="flex gap-2 w-full md:w-fit">
                   <button
                     onClick={toggleSelectionMode}
-                    className="border border-color-black hover:bg-[#212121] rounded-lg hover:text-white px-8 py-3 transition-all duration-300 w-full md:w-fit"
+                    className="border border-color-black hover:bg-[var(--hover-dark-bg)] rounded-lg hover:text-white px-8 py-3 transition-all duration-300 w-full md:w-fit"
                   >
                     {t("change")}
                   </button>

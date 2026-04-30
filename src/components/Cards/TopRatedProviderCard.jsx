@@ -9,7 +9,6 @@ import { useSelector } from "react-redux";
 import { bookmark } from "@/api/apiRoutes";
 import { toast } from "sonner";
 import { useIsLogin } from "@/utils/Helper";
-import CustomLink from "../ReUseableComponents/CustomLink";
 import { useDispatch } from "react-redux";
 import { openLoginModal } from "@/redux/reducers/helperSlice";
 
@@ -21,7 +20,9 @@ const TopRatedProviderCard = ({ provider }) => {
   const locationData = useSelector((state) => state?.location);
   const [isBookMarked, setIsBookMarked] = useState(false);
 
-  const handleAddBookMark = async () => {
+  const handleAddBookMark = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (isLoggedIn) {
       try {
         const res = await bookmark({
@@ -46,7 +47,9 @@ const TopRatedProviderCard = ({ provider }) => {
     }
   };
 
-  const handleRemoveBookMark = async () => {
+  const handleRemoveBookMark = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (isLoggedIn) {
       try {
         const res = await bookmark({
@@ -153,11 +156,9 @@ const TopRatedProviderCard = ({ provider }) => {
             </span>
           </div>
         </div>
-        <button className="w-full light_bg_color primary_text_color dark:text-white font-normal py-2.5 px-4 rounded-lg text-sm mt-4">
-          <CustomLink href={`/provider-details/${provider?.slug}`}>
-            {t("viewService")}
-          </CustomLink>
-        </button>
+        <div className="w-full light_bg_color primary_text_color dark:text-white font-normal py-2.5 px-4 rounded-lg text-sm mt-4 text-center">
+          {t("viewService")}
+        </div>
       </div>
     </div>
   );

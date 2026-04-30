@@ -68,7 +68,7 @@ const Application = ({isReview}) => {
 
   return (
     <div className={`${isReview ? "-mt-[100px]" : "my-10"} transition-all ease-in-out duration-300`}>
-      <div className="relative bg-[#000] overflow-hidden rounded-[30px] py-14 px-4 md:px-8 lg:px-12 border-none">
+      <div className="relative bg-[var(--app-dark-section-bg)] overflow-hidden rounded-[30px] py-14 px-4 md:px-8 lg:px-12 border-none">
         {leftSideShap}
         <div className="flex flex-col items-center justify-center gap-4 mx-auto text-center">
           <span className="text-xl xl:text-[40px] leading-[32px] xl:leading-[48px] font-bold text-white w-full xl:w-[50%]">
@@ -80,7 +80,7 @@ const Application = ({isReview}) => {
             <Link
               href={playStoreLink}
               target="_blank"
-              className="flex w-auto items-center justify-center px-2 py-2 gap-2 bg-[#FFFFFF3D] hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm lg:text-[20px] rounded-md icon"
+              className="flex w-auto items-center justify-center px-2 py-2 gap-2 store_btn_bg hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm lg:text-[20px] rounded-md icon"
             >
               {playStore}
               <span>{t("googlePlay")}</span>
@@ -88,7 +88,7 @@ const Application = ({isReview}) => {
             <Link
               href={appStoreLink}
               target="_blank"
-              className="flex w-auto items-center justify-center px-2 py-2 gap-2 bg-[#FFFFFF3D] hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm lg:text-[20px] rounded-md icon"
+              className="flex w-auto items-center justify-center px-2 py-2 gap-2 store_btn_bg hover:bg-white transition-all ease-in-out duration-300 hover:primary_text_color text-white font-bold text-sm lg:text-[20px] rounded-md icon"
             >
               {apple}
               <span>{t("appStore")}</span>

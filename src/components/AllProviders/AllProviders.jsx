@@ -215,7 +215,8 @@ const AllProviders = () => {
 
   const totalProviders = providersData?.total || 0;
   const currentProviders = providersData?.data?.length || 0;
-  const shouldShowSkeleton = hasLocation && (isLoading || isFetching);
+  const shouldShowSkeleton = hasLocation && isLoading;
+  const isLoadingMore = hasLocation && isFetching && !isLoading && currentProviders > 0;
 
   return (
     <Layout>
@@ -234,7 +235,7 @@ const AllProviders = () => {
           <div className="filterSec flex flex-col gap-3 mt-4 w-full">
             {/* Desktop layout */}
             <div className="hidden md:flex items-center gap-3 w-full">
-              <div className="flex items-center justify-between gap-2 px-4 py-2 border rounded-md description_color flex-grow card_bg">
+              <div className="flex items-center justify-between gap-2 px-4 h-[46px] border rounded-md description_color flex-grow card_bg">
                 <div className="flex items-center gap-2 w-full">
                   <FaSearch size={18} className="description_color" />
                   <input
@@ -245,25 +246,25 @@ const AllProviders = () => {
                     className="w-full focus:outline-none bg-transparent"
                   />
                 </div>
-                <button
+                {/* <button
                   onClick={handleSearch}
-                  className="transition-all duration-300 border hover:border_color text-xs sm:text-base px-4 py-2 background_color hover:primary_bg_color description_color hover:text-white rounded-lg"
+                  className="transition-all duration-300 border hover:border_color text-xs sm:text-base px-4 py-1.5 background_color hover:primary_bg_color description_color hover:text-white rounded-lg"
                 >
                   {t("search")}
-                </button>
+                </button> */}
               </div>
               {Array.isArray(categories) && categories.length > 0 && (
-                <div className="flex items-center px-4 py-2 border rounded-md description_color min-w-[220px] card_bg">
+                <div className="flex items-center px-4 h-[46px] border rounded-md description_color min-w-[220px] card_bg">
                   <Select
                     onValueChange={handleCategoryChange}
                     value={category || "all"}
                   >
-                    <SelectTrigger className="w-full px-0 focus:ring-0 focus:outline-none bg-transparent border-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-full px-0 focus:ring-0 focus:outline-none bg-transparent border-0 focus:ring-offset-0 h-full">
                       <SelectValue
                         placeholder={t("selectCategory") || "Select Category"}
                       />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="min-h-[150px]">
                       <SelectItem value="all">
                         {t("allCategories") || "All Categories"}
                       </SelectItem>
@@ -288,10 +289,10 @@ const AllProviders = () => {
               <div className="flex items-center space-x-2 gap-2">
                 <span className="description_color">{t("filter")}</span>
                 <Select onValueChange={handleSortChange} value={sortOption}>
-                  <SelectTrigger className="w-[200px] px-4 py-2 border rounded-md description_color focus:outline-none focus:ring-0 focus:ring-transparent card_bg">
+                  <SelectTrigger className="w-[200px] px-4 h-[46px] border rounded-md description_color focus:outline-none focus:ring-0 focus:ring-transparent card_bg">
                     <SelectValue placeholder="Select Filter" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="min-h-[120px]">
                     <SelectItem value="popularity">
                       {t("popularity")}
                     </SelectItem>
@@ -318,21 +319,11 @@ const AllProviders = () => {
                   />
                 </div>
                 <button
-                  onClick={handleSearch}
-                  className="transition-all duration-300 border hover:border_color text-sm px-4 py-2 background_color hover:primary_bg_color description_color hover:text-white rounded-lg"
-                >
-                  {t("search")}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between w-full px-4 py-2 border rounded-md light_bg_color primary_text_color">
-                <span className="description_color">{t("filter")}</span>
-                <button
                   type="button"
                   onClick={() => setShowMobileFilters((prev) => !prev)}
-                  className="p-2 rounded-lg border border-dashed border_color"
+                  className="p-1.5 rounded-lg flex-shrink-0 light_bg_color"
                 >
-                  <IoFilterOutline size={22} />
+                  <IoFilterOutline size={20} className="primary_text_color" />
                 </button>
               </div>
 
@@ -408,6 +399,10 @@ const AllProviders = () => {
                     </CustomLink>
                   </div>
                 ))}
+                {isLoadingMore &&
+                  Array.from({ length: limitStep }).map((_, index) => (
+                    <NearbyProviderCardSkeleton key={`skeleton-${index}`} />
+                  ))}
               </div>
             ) : (
               // Empty State

@@ -49,10 +49,14 @@ export const getDefaultSchemaMarkup = () => {
 export const extractJSONFromMarkup = (markup) => {
   try {
     if (!markup) return null;
+    // If markup is already a parsed object, return it directly
+    if (typeof markup === 'object') return markup;
+    if (markup === 'Null' || markup === '"Null"' || markup.toLowerCase() === 'null') return null;
     const jsonString = markup.replace(/<\/?script[^>]*>/g, "").trim();
+    if (!jsonString || jsonString.toLowerCase() === 'null') return null;
     return JSON.parse(jsonString);
   } catch (error) {
-    console.error("Error parsing schema markup:", error);
+    console.warn("Could not parse schema markup, using default:", error.message);
     return null;
   }
 };
@@ -105,9 +109,8 @@ export const fetchSeoSettings = async (page, slug, languageCode = null) => {
     const webSettingsData = settingsResponse.data?.data?.web_settings || {};
 
     // Get schema markup from API or use default
-    const schemaMarkup = seoData.schema_markup
-      ? extractJSONFromMarkup(seoData.schema_markup)
-      : getDefaultSchemaMarkup();
+    const parsedMarkup = seoData.schema_markup ? extractJSONFromMarkup(seoData.schema_markup) : null;
+    const schemaMarkup = parsedMarkup || getDefaultSchemaMarkup();
 
     // Prepare final props with translated or fallback values
     // Use translated values for OG and Twitter tags to ensure social media previews show correct language

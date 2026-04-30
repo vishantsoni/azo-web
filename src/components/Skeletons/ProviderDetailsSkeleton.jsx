@@ -82,7 +82,7 @@ const ProviderDetailsSkeleton = () => {
                 <div className="sticky top-36">
                   <div className="flex flex-col gap-4">
                     {/* Service Details Skeleton */}
-                    <div className="rounded-[18px] bg-[#F5FAFF] dark:card_bg shadow-sm border border-gray-200 p-5">
+                    <div className="rounded-[18px] provider_info_card dark:card_bg shadow-sm border border-gray-200 p-5">
                       <Skeleton className="w-full h-[220px] rounded-xl" />
                       <div className="flex items-start gap-3 mt-4">
                         <Skeleton className="w-14 h-14 rounded-xl" />

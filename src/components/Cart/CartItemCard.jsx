@@ -304,96 +304,86 @@ const CartItemCard = ({ data }) => {
     : data?.title;
 
   return (
-    <div className="border rounded-xl flex flex-col sm:flex-row gap-4 sm:gap-6 py-4 px-4 sm:px-6">
+    <div className="border rounded-xl flex flex-row gap-4 sm:gap-6 py-4 px-4 sm:px-6">
       {/* Service Image */}
-      <div className="service-img w-full sm:w-32 h-auto sm:h-32 rounded-[8px]">
+      <div className="service-img flex-shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-[8px]">
         <CustomImageTag
           src={data?.image_of_the_service}
           alt={translatedServiceName}
-          className="w-full h-full  rounded-lg aspect-service"
+          className="w-full h-full rounded-lg"
           imgClassName="rounded-lg object-cover"
         />
       </div>
 
       {/* Details Section */}
-      <div className="details w-full flex flex-col gap-4">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between gap-3">
-          <div className="flex flex-col gap-2 sm:gap-4">
-            <span className="text-sm sm:text-lg md:text-xl font-semibold">
-              {translatedServiceName}
-            </span>
-            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
-              <span className="flex items-center gap-2">
-                <FaUserFriends className="mr-1 primary_text_color" />
-                {data?.number_of_members_required}
-              </span>
-              <span className="flex items-center gap-2">
-                <FaClock className="mr-1 primary_text_color" />
-                {data?.duration}
-              </span>
-            </div>
-          </div>
+      <div className="details w-full flex flex-col gap-2 sm:gap-4 min-w-0">
+        {/* Service name */}
+        <span className="text-sm sm:text-lg md:text-xl font-semibold line-clamp-2">
+          {translatedServiceName}
+        </span>
 
-          {/* Price Section */}
-          <div className="flex flex-col gap-1 sm:gap-2 items-start sm:items-end">
-            {data?.discounted_price > 0 ? (
-              <>
-                <span className="text-sm sm:text-base font-bold text-black dark:text-white">
-                  {showPrice(data?.price_with_tax)}
-                </span>
-                <span className="text-xs sm:text-sm text-gray-400 line-through">
-                  {showPrice(data?.original_price_with_tax)}
-                </span>
-              </>
-            ) : (
-              <span className="text-sm sm:text-base font-bold text-black dark:text-white">
-                {showPrice(data?.price_with_tax)}
+        {/* Members + Duration */}
+        <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+          <span className="flex items-center gap-1">
+            <FaUserFriends className="primary_text_color" />
+            {data?.number_of_members_required}
+          </span>
+          <span className="flex items-center gap-1">
+            <FaClock className="primary_text_color" />
+            {data?.duration}
+          </span>
+        </div>
+
+        {/* Bottom row: price | qty controls | delete */}
+        <div className="flex items-center justify-between gap-2 mt-auto pt-1">
+          {/* Price */}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm sm:text-base font-bold text-black dark:text-white">
+              {showPrice(data?.price_with_tax)}
+            </span>
+            {data?.discounted_price > 0 && (
+              <span className="text-xs text-gray-400 line-through leading-none">
+                {showPrice(data?.original_price_with_tax)}
               </span>
             )}
           </div>
-        </div>
 
-        {/* Buttons Section */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          {data?.id && qty[data.id] > 0 ? (
-            <button className="px-4 py-2 mt-2 text-xs sm:text-sm font-medium light_bg_color primary_text_color rounded-md overflow-hidden w-full xl:w-fit">
-              <span className="flex items-center justify-between gap-6">
+          {/* Qty controls + delete */}
+          <div className="flex items-center gap-2">
+            {data?.id && qty[data.id] > 0 ? (
+              <div className="flex items-center gap-3 px-3 py-1.5 light_bg_color primary_text_color rounded-md text-xs sm:text-sm font-medium">
                 {qty[data.id] > 1 ? (
-                  <span onClick={() => handleRemoveQuantity(data.id)}>
-                    <FaMinus />
+                  <span className="cursor-pointer" onClick={() => handleRemoveQuantity(data.id)}>
+                    <FaMinus size={11} />
                   </span>
                 ) : (
-                  <span>
-                    <FaMinus className="!text-gray-400 cursor-not-allowed" />
-                  </span>
+                  <FaMinus size={11} className="!text-gray-400 cursor-not-allowed" />
                 )}
-                <span
-                  className={`relative ${animationClass[data.id]
-                    } transition-transform duration-300`}
-                >
+                <span className={`relative ${animationClass[data.id]} transition-transform duration-300 min-w-[14px] text-center`}>
                   {qty[data.id]}
-                </span>{" "}
-                <span onClick={() => handleAddQuantity(data.id)}>
-                  <FaPlus />
                 </span>
-              </span>
-            </button>
-          ) : (
+                <span className="cursor-pointer" onClick={() => handleAddQuantity(data.id)}>
+                  <FaPlus size={11} />
+                </span>
+              </div>
+            ) : (
+              <button
+                className="px-3 py-1.5 text-xs sm:text-sm font-medium light_bg_color primary_text_color rounded-md"
+                onClick={(e) => handleAddToCart(e, data)}
+              >
+                {t("addToCart")}
+              </button>
+            )}
+
             <button
-              className="w-full xl:w-fit px-4 py-2 mt-2 text-xs sm:text-sm font-medium light_bg_color primary_text_color rounded-md"
-              onClick={(e) => handleAddToCart(e, data)}
+              onClick={() => handleRemoveItemFromCart(data.id)}
+              className="flex items-center gap-1 neutral_text opacity-70"
+              aria-label={t("remove")}
             >
-              {t("addToCart")}
+              <MdOutlineDelete size={20} />
+              <span className="hidden sm:inline text-xs sm:text-sm font-normal">{t("remove")}</span>
             </button>
-          )}
-          <button
-            onClick={() => handleRemoveItemFromCart(data.id)}
-            className="remove-item flex items-center gap-2 text-[#121212] opacity-[0.76] text-xs sm:text-sm font-normal"
-          >
-            <MdOutlineDelete size={20} />
-            {t("remove")}
-          </button>
+          </div>
         </div>
       </div>
     </div>

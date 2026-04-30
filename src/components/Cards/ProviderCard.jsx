@@ -62,13 +62,13 @@ const ProviderCard = ({ provider }) => {
           <p className="text-sm description_color">{provider?.location}</p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2">
             {provider?.average_rating > 0 && (
-              <div className="text-md font-medium bg-[#DB930514] rating_icon_color p-1 rounded-[4px] flex items-center justify-center gap-1">
+              <div className="text-md font-medium bg-[var(--rating-bg)] rating_icon_color p-1 rounded-[4px] flex items-center justify-center gap-1">
                 <FaStar />
                 <span>{Number(provider?.average_rating).toFixed(1)}</span>
               </div>
             )}
             {provider?.completed_orders > 0 && (
-              <div className="text-md font-medium bg-[#83B80714] text-[#83B807] p-1 rounded-[4px] flex items-center justify-center gap-1">
+              <div className="text-md font-medium bg-[var(--orders-done-bg)] text-[var(--orders-done-color)] p-1 rounded-[4px] flex items-center justify-center gap-1">
                 <FaCircleCheck />
                 <span>
                   {provider?.completed_orders} {t("ordersDone")}

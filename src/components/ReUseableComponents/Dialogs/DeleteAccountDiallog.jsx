@@ -10,8 +10,8 @@ const DeleteAccountDiallog = ({ isOpen, onClose, onDelete }) => {
     <Dialog open={isOpen} onOpenChange={(state) => { if (!state) onClose(); }}>
       <DialogContent className="max-w-[400px] p-8 card_bg rounded-[20px] overflow-hidden flex flex-col items-center">
         <div className="mb-5 flex items-center justify-center">
-          <div className="flex items-center justify-center p-3 bg-[#D1000014] rounded-full">
-            <RiDeleteBinLine className="w-10 h-10 text-[#D10000]" />
+          <div className="flex items-center justify-center p-3 danger_icon_bg rounded-full">
+            <RiDeleteBinLine className="w-10 h-10 danger_icon_text" />
           </div>
         </div>
 

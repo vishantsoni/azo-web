@@ -5,10 +5,11 @@ import { FaPlus, FaImage, FaFile } from "react-icons/fa";
 import { RiSendPlaneFill } from "react-icons/ri";
 import MiniLoader from "@/components/ReUseableComponents/MiniLoader";
 import { useRTL } from "@/utils/Helper";
+import AttachedFilesPreview from "./AttachedFilesPreview";
 
 const ChatInput = ({
   attachedFiles,
-  renderFilePreview,
+  onRemoveFile,          // (index) => void  — remove a pending attachment
   handleFileAttachment,
   message,
   handleMessageChange,
@@ -71,11 +72,9 @@ const ChatInput = ({
   if (blockedStatus?.blockedByUser || blockedStatus?.blockedByProvider) {
     return (
       <div
-        className="p-3 border-t text-center"
-        style={{
-          backgroundColor: blockedStatus.blockedByUser ? "#FEE2E2" : "#FEF3C7",
-          color: blockedStatus.blockedByUser ? "#991B1B" : "#92400E",
-        }}
+        className={`p-3 border-t text-center ${
+          blockedStatus.blockedByUser ? "chat_blocked_user" : "chat_blocked_provider"
+        }`}
       >
         {blockedStatus.message}
       </div>
@@ -91,44 +90,50 @@ const ChatInput = ({
   }
 
   return (
-    <div>
-      {attachedFiles.length > 0 && (
-        <div className="w-full border-t px-3 py-2 flex-wrap flex gap-2 overflow-auto max-h-[200px] card_bg">
-          {attachedFiles.map((file, index) => renderFilePreview(file, index))}
-        </div>
-      )}
-      <div className="w-full p-2 md:p-3 card_bg border-t flex gap-2 items-center rounded-b-lg">
+    <div className="w-full bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-1.5 md:p-2.5 rounded-b-lg">
+      {/* Attached files preview strip */}
+      <AttachedFilesPreview files={attachedFiles} onRemove={onRemoveFile} />
+
+      <div className="flex gap-2 items-end max-w-7xl mx-auto">
         {(isImageUploadEnabled || isFileUploadEnabled) && (
-          <div className="relative" ref={dropdownRef}>
-            <div
+          <div className="relative flex mb-0.5" ref={dropdownRef}>
+            <button
+              type="button"
               onClick={handleAttachmentClick}
-              className="md:h-10 md:w-10 h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 cursor-pointer"
+              className="group flex items-center justify-center h-9 w-9 md:h-10 md:w-10 rounded-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none border border-gray-100 dark:border-gray-700 shadow-sm"
+              title={t("attachments")}
             >
-              <FaPlus className="text-gray-600" />
-            </div>
+              <FaPlus className={`text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-transform duration-300 ${showDropdown ? 'rotate-45' : ''}`} size={16} />
+            </button>
 
             {showDropdown && (
               <div
-                className={`absolute bottom-full mb-2 ${isRTL ? "right-0" : "left-0"
-                  } bg-white shadow-lg rounded-lg p-2 flex flex-col gap-2 min-w-[150px] z-20 border border-gray-100`}
+                className={`absolute bottom-full mb-2.5 ${isRTL ? "right-0" : "left-0"
+                  } bg-white dark:bg-gray-800 shadow-xl rounded-xl p-1.5 flex flex-col gap-0.5 min-w-[160px] z-20 border border-gray-100 dark:border-gray-700 animate-in fade-in slide-in-from-bottom-2 duration-200`}
               >
                 {isImageUploadEnabled && (
-                  <div
+                  <button
+                    type="button"
                     onClick={handleImageClick}
-                    className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-md cursor-pointer text-gray-700"
+                    className="flex items-center gap-2.5 px-2.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300"
                   >
-                    <FaImage className="text-gray-500" />
-                    <span>{t("images")}</span>
-                  </div>
+                    <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                      <FaImage className="text-blue-500 text-xs" />
+                    </div>
+                    <span className="font-medium text-xs md:text-sm">{t("images")}</span>
+                  </button>
                 )}
                 {isFileUploadEnabled && (
-                  <div
+                  <button
+                    type="button"
                     onClick={handleFileClick}
-                    className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-md cursor-pointer text-gray-700"
+                    className="flex items-center gap-2.5 px-2.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300"
                   >
-                    <FaFile className="text-gray-500" />
-                    <span>{t("documents")}</span>
-                  </div>
+                    <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center">
+                      <FaFile className="text-orange-500 text-xs" />
+                    </div>
+                    <span className="font-medium text-xs md:text-sm">{t("documents")}</span>
+                  </button>
                 )}
               </div>
             )}
@@ -153,36 +158,50 @@ const ChatInput = ({
             />
           </div>
         )}
-        <div className="relative w-full border dark:border_color rounded-md flex flex-col items-center justify-end">
-          <textarea
-            className="w-full input-like p-2 md:p-3 rounded-md bg-transparent  resize-none overflow-hidden min-h-[40px] focus:outline-none"
-            placeholder={t("typeMessage")}
-            style={{ direction: isRTL ? "rtl" : "ltr" }}
-            value={message}
-            onChange={handleMessageChange}
-            maxLength={MaxCharactersInTextMessage}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-          ></textarea>
-          {/* <small className="counter absolute hidden md:block  right-5 bottom-2 text-xs text-gray-500">
-                        {message.length}/{MaxCharactersInTextMessage}
-                    </small> */}
 
-          <small className="counter text-xs description_color w-full text-right mr-5">
-            {message.length}/{MaxCharactersInTextMessage}
-          </small>
+        <div className="relative flex-1 group transition-all duration-200">
+          <div className="relative flex flex-col bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+            <textarea
+              className="w-full bg-transparent px-3 py-2 resize-none focus:outline-none text-gray-800 dark:text-gray-200 placeholder-gray-400 min-h-[38px] md:min-h-[42px] max-h-32 text-sm md:text-base leading-snug scrollbar-hide"
+              placeholder={t("typeMessage")}
+              style={{ direction: isRTL ? "rtl" : "ltr" }}
+              value={message}
+              onChange={handleMessageChange}
+              maxLength={MaxCharactersInTextMessage}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (message.trim() || attachedFiles.length > 0) handleSend();
+                }
+              }}
+            ></textarea>
+
+            <div className={`px-3 pb-1 flex justify-end transition-opacity duration-300 ${message.length > 0 ? 'opacity-100' : 'opacity-0'}`}>
+              <span className={`text-[10px] font-medium ${message.length >= MaxCharactersInTextMessage ? 'text-red-500' : 'text-gray-400'}`}>
+                {message.length}/{MaxCharactersInTextMessage}
+              </span>
+            </div>
+          </div>
         </div>
-        <button
-          onClick={handleSend}
-          className="md:h-10 md:w-10 h-8 w-8 flex items-center justify-center rounded-lg primary_bg_color text-white"
-          disabled={isSending}
-        >
-          {isSending ? <MiniLoader /> : <RiSendPlaneFill />}
-        </button>
+
+        <div className="mb-0.5">
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={isSending || (!message.trim() && attachedFiles.length === 0)}
+            className={`flex items-center justify-center h-9 w-9 md:h-10 md:w-10 rounded-full transition-all duration-300 shadow-sm active:scale-95 ${
+              isSending || (!message.trim() && attachedFiles.length === 0)
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-300 cursor-not-allowed'
+                : 'primary_bg_color text-white shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5'
+            }`}
+          >
+            {isSending ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <RiSendPlaneFill size={18} className={isRTL ? 'rotate-180' : ''} />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

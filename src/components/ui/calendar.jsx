@@ -12,8 +12,22 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
   // Create formatters for the calendar
   const formatters = {
     formatWeekdayName: (date) => {
-      const weekday = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-      return t(weekday)?.slice(0, 3);
+      // 1. Get the short key (e.g., "mon")
+      const shortKey = date.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+
+      // 2. Try to get the translated short version
+      const translatedShort = t(shortKey);
+
+      // 3. If a translation exists and is different from the key, use it
+      if (translatedShort && translatedShort !== shortKey) {
+        return translatedShort;
+      }
+
+      // 4. Fallback: Use long name and slice
+      const longKey = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const translatedLong = t(longKey);
+
+      return translatedLong?.slice(0, 3);
     },
     formatCaption: (date, options) => {
       const month = date.toLocaleDateString('en-US', { month: 'long' }).toLowerCase();

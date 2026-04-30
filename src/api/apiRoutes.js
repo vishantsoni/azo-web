@@ -736,6 +736,23 @@ export const getAddressApi = async () => {
 };
 
 // 25. add address api
+export const GetAddressCustomFieldsApi = async ({ address_id = "" } = {}) => {
+  try {
+    const formData = new FormData();
+    if (address_id) {
+      formData.append("address_id", address_id);
+    }
+    const response = await api.post(
+      apiEndPoints.getAddressCustomFields,
+      formData,
+    );
+    return response?.data;
+  } catch (error) {
+    console.error("Error in GetAddressCustomFields:", error);
+    throw error;
+  }
+};
+
 export const AddAddressApi = async ({
   id = "",
   mobile = "",
@@ -752,6 +769,7 @@ export const AddAddressApi = async ({
   country = "",
   is_default = "",
   landmark = "",
+  custom_fields = "",
 }) => {
   try {
     const formData = new FormData();
@@ -803,6 +821,9 @@ export const AddAddressApi = async ({
     if (mobile) {
       formData.append("alternate_mobile", mobile);
     } // Assuming alternate_mobile is same as mobile
+    if (custom_fields) {
+      formData.append("custom_fields", custom_fields);
+    }
 
     const response = await api.post(apiEndPoints.addAddress, formData);
 
@@ -1373,6 +1394,7 @@ export const applyRateServiceApi = async ({
   images = "",
   custom_job_request_id = "",
   images_to_delete = "",
+  custom_request_order = "",
 }) => {
   try {
     const formData = new FormData();
@@ -1383,6 +1405,9 @@ export const applyRateServiceApi = async ({
     formData.append("comment", comment);
     if (custom_job_request_id) {
       formData.append("custom_job_request_id", custom_job_request_id);
+    }
+    if (custom_request_order) {
+      formData.append("custom_request_order", custom_request_order);
     }
 
     if (Array.isArray(images)) {
@@ -1745,12 +1770,24 @@ export const getProvidersOnMapApi = async ({
 // 63. get language list api
 export const getLanguageListApi = async ({ platform = "web" } = {}) => {
   try {
-    const response = await api.get(apiEndPoints.getLanguageList, {
-      headers: {
-        platform: platform,
+    // const response = await api.get(apiEndPoints.getLanguageList, {
+    //   headers: {
+    //     platform: platform,
+    //   },
+    // });
+    // return response?.data;
+    return [
+      {
+        id: "1",
+        language: "English",
+        code: "en",
+        is_rtl: "0",
+        image:
+          "https://system.azoapp.com/public/uploads/languages/images/hi_1756187789.png",
+        created_at: "2021-12-25 16:07:11",
+        updated_at: "2026-02-10 17:27:38",
       },
-    });
-    return response?.data;
+    ];
   } catch (error) {
     console.error("Error in getLanguageList:", error);
     throw error;
@@ -1934,7 +1971,18 @@ export const getPageSettingsApi = async ({ page = "" }) => {
   }
 };
 
-// 70. change password api (for forgot password / reset password / logged-in user password change)
+// 70. get custom pages list api
+export const getCustomPagesApi = async () => {
+  try {
+    const response = await api.post(apiEndPoints.getCustomPages);
+    return response?.data;
+  } catch (error) {
+    console.error("Error in getCustomPages:", error);
+    throw error;
+  }
+};
+
+// 71. change password api (for forgot password / reset password / logged-in user password change)
 export const changePasswordApi = async ({
   reset_token = "",
   new_password = "",
@@ -2039,7 +2087,6 @@ export const createCashfreeOrderApi = async ({
   }
 };
 
-
 // 73. update fcm api
 export const updateFcmApi = async ({ platform = "", fcm_id = "" }) => {
   try {
@@ -2061,9 +2108,26 @@ export const updateFcmApi = async ({ platform = "", fcm_id = "" }) => {
   }
 };
 
+// 75. get chat questions api
+export const getChatQuestionsApi = async ({ type }) => {
+  try {
+    const formData = new FormData();
+    formData.append("type", type);
+    const response = await api.post(apiEndPoints.getChatQuestions, formData);
+
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch chat questions");
+    }
+
+    return response?.data;
+  } catch (error) {
+    console.error("Error fetching chat questions:", error);
+    return null;
+  }
+};
+
 // 74. get user info api
 export const getUserInfoApi = async () => {
-  
   try {
     const response = await api.post(apiEndPoints.getUserInfo);
 
@@ -2078,6 +2142,3 @@ export const getUserInfoApi = async () => {
     throw error;
   }
 };
-
-
-

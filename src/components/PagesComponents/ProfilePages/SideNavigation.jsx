@@ -5,27 +5,30 @@ import {
 } from "@/api/apiRoutes.js";
 import { DEMO_CREDENTIALS } from "@/components/auth/LoginModal/constants";
 import { useTranslation } from "@/components/Layout/TranslationContext.jsx";
+import ChatUnreadBadge from "@/components/ReUseableComponents/ChatUnreadBadge";
+import CustomLink from "@/components/ReUseableComponents/CustomLink.jsx";
 import DeleteAccountDiallog from "@/components/ReUseableComponents/Dialogs/DeleteAccountDiallog.jsx";
 import LogoutDialog from "@/components/ReUseableComponents/Dialogs/LogoutDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { AUTH_EVENTS } from "@/constants/clarityEventNames";
+import useChatUnreadCounts from "@/hooks/useChatUnreadCounts";
 import { clearCart } from "@/redux/reducers/cartSlice.js";
-import { clearChatData } from "@/redux/reducers/helperSlice.js";
-import { clearUserData, getUserData } from "@/redux/reducers/userDataSlice.js";
+import { selectAdminUnread } from "@/redux/reducers/chatUISlice";
 import {
-  setIsAdmin,
   setChatStep,
+  setIsAdmin,
   setSelectedChat,
   setSelectedChatId,
 } from "@/redux/reducers/chatUISlice.js";
-import useChatUnreadCounts from "@/hooks/useChatUnreadCounts";
-import ChatUnreadBadge from "@/components/ReUseableComponents/ChatUnreadBadge";
-import { selectAdminUnread } from "@/redux/reducers/chatUISlice";
+import { clearChatData } from "@/redux/reducers/helperSlice.js";
+import { clearUserData, getUserData } from "@/redux/reducers/userDataSlice.js";
+import { logClarityEvent } from "@/utils/clarityEvents";
 import FirebaseData from "@/utils/Firebase.js";
 import { isDemoMode, placeholderImage, useRTL } from "@/utils/Helper";
 import { useRouter } from "next/router";
-import { useState, memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import { BsBookmarkCheck } from "react-icons/bs";
-import { VscTools } from "react-icons/vsc";
 import { FaRegCalendarCheck } from "react-icons/fa";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import {
@@ -34,20 +37,16 @@ import {
 } from "react-icons/io5";
 import { LiaPowerOffSolid, LiaUserTimesSolid } from "react-icons/lia";
 import {
+  MdClose,
   MdOutlineKeyboardArrowRight,
   MdOutlinePayments,
   MdOutlineSupportAgent,
-  MdClose,
 } from "react-icons/md";
 import { RiLockPasswordLine } from "react-icons/ri";
+import { VscTools } from "react-icons/vsc";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import EditProfileModal from "../../auth/EditProfile.jsx";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import CustomLink from "@/components/ReUseableComponents/CustomLink.jsx";
-import { logClarityEvent } from "@/utils/clarityEvents";
-import { AUTH_EVENTS } from "@/constants/clarityEventNames";
-import MiniLoader from "@/components/ReUseableComponents/MiniLoader";
 import SetPasswordModal from "../../auth/SetPasswordModal.jsx";
 
 const SideNavigation = () => {
@@ -222,7 +221,7 @@ const SideNavigation = () => {
       }, {}),
     [navItems]
   );
-  
+
   const handleLogout = async (e, isDeleteAccount = false) => {
     if (e) e.preventDefault();
 
@@ -311,8 +310,9 @@ const SideNavigation = () => {
       <div className="text-center mb-6 border custom-gradient dark:card_bg p-4 rounded-xl">
         <Avatar className="w-20 h-20 mx-auto rounded-full cursor-pointer">
           <AvatarImage
-            src={userData?.image ? userData?.image : placeholderImage}
+            src={userData?.image}
             alt={userData?.username}
+            onError={placeholderImage}
             onClick={() => setShowImagePreview(true)}
           />
           <AvatarFallback>

@@ -106,6 +106,7 @@ const PhoneEmailInputScreen = ({
                             className="relative"
                         >
                             <PhoneInput
+                                enableLongNumbers={true}
                                 value={phone}
                                 country={effectiveCountryCode}
                                 countryCodeEditable={false}

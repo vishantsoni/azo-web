@@ -20,6 +20,7 @@ const ProviderChat = ({
     chatMessages,
     attachedFiles,
     handleFileAttachment,
+    onRemoveFile,
     message,
     handleMessageChange,
     MaxCharactersInTextMessage,
@@ -28,14 +29,15 @@ const ProviderChat = ({
     userData,
     renderMessage,
     selectedChatTab,
-    renderFilePreview,
     handleOpenLightbox,
     blockedStatus,
     onBlock,
     onUnblock,
     onDelete,
     mobileView,
-    handleBackToList
+    handleBackToList,
+    allowPreBookingChat = true,
+    allowPostBookingChat = true,
 }) => {
     const t = useTranslation();
     const chatContentRef = useRef(null);
@@ -52,17 +54,11 @@ const ProviderChat = ({
     }, [chatMessages?.length]);
 
     // Handle direct question submission (auto-send)
-    const handleQuestionSubmit = async (question) => {
-        const customSendEvent = {
-            preventDefault: () => { },
-            target: { value: question }
-        };
-
-        setTimeout(() => {
-            if (selectedChatTab?.order_status !== "cancelled" && selectedChatTab?.order_status !== "completed") {
-                handleSend(customSendEvent);
-            }
-        }, 100);
+    // Pass the question string directly — handleSend accepts a string or no argument
+    const handleQuestionSubmit = (question) => {
+        if (selectedChatTab?.order_status !== "cancelled" && selectedChatTab?.order_status !== "completed") {
+            handleSend(question);
+        }
     };
 
     // If no chat is selected
@@ -85,11 +81,22 @@ const ProviderChat = ({
         return chatMessages?.length === 0;
     };
 
-    const isDisabled = selectedChatTab?.order_status === 'cancelled' || selectedChatTab?.order_status === 'completed';
+    const isOrderDisabled = selectedChatTab?.order_status === 'cancelled' || selectedChatTab?.order_status === 'completed';
+    const isPreBookingChat = !selectedChatTab?.booking_id;
+
+    // Determine if chat input should be disabled due to backend permission flags
+    const isChatTypeDisabled = isPreBookingChat ? !allowPreBookingChat : !allowPostBookingChat;
+    const chatTypeDisabledMessage = isPreBookingChat
+        ? t("preBookingChatIsDisabled")
+        : t("postBookingChatIsDisabled");
+
+    const isDisabled = isOrderDisabled || blockedStatus.isBlocked || isChatTypeDisabled;
+    const disabledMessage = isChatTypeDisabled ? chatTypeDisabledMessage : undefined;
+
     const translatedPartnerName = selectedChatTab?.translated_partner_name ? selectedChatTab?.translated_partner_name : selectedChatTab?.partner_name;
 
     return (
-        <div className='flex-1 flex flex-col'>
+        <div className='flex-1 flex flex-col h-full'>
             {/* Desktop Header */}
             <div className='hidden md:flex p-3 items-center border-b border-gray-300 gap-3 justify-between'>
                 <div className='flex items-center gap-3'>
@@ -118,7 +125,7 @@ const ProviderChat = ({
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className={`w-48 ${isRtl ? 'left-auto right-0' : 'right-auto left-0'}`}>
-                        {!isDisabled && (
+                        {(!isOrderDisabled && !isChatTypeDisabled) && (
                             <DropdownMenuItem
                                 onClick={blockedStatus.blockedByUser ? onUnblock : onBlock}
                                 className="cursor-pointer"
@@ -173,7 +180,7 @@ const ProviderChat = ({
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                            {!isDisabled && (
+                            {(!isOrderDisabled && !isChatTypeDisabled) && (
                                 <DropdownMenuItem
                                     onClick={blockedStatus.blockedByUser ? onUnblock : onBlock}
                                     className="cursor-pointer"
@@ -195,7 +202,7 @@ const ProviderChat = ({
             )}
 
             {/* Chat Messages */}
-            <div ref={chatContentRef} className='flex-1 flex flex-col gap-3 p-4 overflow-auto chatsWrapper justify-start chat_messages_screen' onScroll={handleScroll}>
+            <div ref={chatContentRef} className='flex-1 min-h-0 flex flex-col gap-3 p-4 overflow-auto chatsWrapper justify-start chat_messages_screen' onScroll={handleScroll}>
 
 
                 {isLoading ? (
@@ -225,15 +232,16 @@ const ProviderChat = ({
             {/* Chat Input */}
             <ChatInput
                 attachedFiles={attachedFiles}
-                renderFilePreview={renderFilePreview}
+                onRemoveFile={onRemoveFile}
                 handleFileAttachment={handleFileAttachment}
                 message={message}
                 handleMessageChange={handleMessageChange}
                 MaxCharactersInTextMessage={MaxCharactersInTextMessage}
                 handleSend={handleSend}
                 isSending={isSending}
-                isDisabled={isDisabled || blockedStatus.isBlocked}
-                blockedStatus={blockedStatus}
+                isDisabled={isDisabled}
+                disabledMessage={disabledMessage}
+                blockedStatus={isChatTypeDisabled ? {} : blockedStatus}
                 inputId="providerFileAttachment"
             />
         </div>

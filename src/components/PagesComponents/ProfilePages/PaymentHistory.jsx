@@ -59,7 +59,15 @@ const PaymentHistory = () => {
   }, [currentPage]);
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    // Treat the date string as local time by removing 'Z'
+    let raw = String(dateString).trim().replace(/Z$/i, '');
+    // Remove any timezone offset to ensure local time is used
+    raw = raw.replace(/[+-]\d{2}:\d{2}$/, '').trim();
+    
+    // Ensure 'T' is between date and time for cross-browser compatibility (e.g. Safari)
+    raw = raw.replace(' ', 'T');
+    
+    const date = new Date(raw);
 
     // Get translated month names
     const months = [
@@ -150,75 +158,160 @@ const PaymentHistory = () => {
               />
             </div>
           ) : (
-            // Show actual table when data is loaded
-            <Table className="w-full">
-              {/* Table Header */}
-              <TableHeader className="primary_bg_color text-white hover:!text-white">
-                <TableRow className="text-white hover:!bg-transparent border-none">
-                  <TableHead
-                    className={`px-6 py-4 font-semibold text-center text-white first:${isRtl ? "rounded-tr-xl" : "rounded-tl-xl"
-                      }`}
-                  >
-                    {t("orderId")}
-                  </TableHead>
-                  <TableHead
-                    className={`px-6 py-4 font-semibold text-center text-white first:${isRtl ? "rounded-tr-xl" : "rounded-tl-xl"
-                      }`}
-                  >
-                    {t("transactionId")}
-                  </TableHead>
-                  <TableHead className="px-6 py-4 font-semibold text-center text-white">
-                    {t("paymentMethod")}
-                  </TableHead>
-                  <TableHead className="px-6 py-4 font-semibold text-center text-white">
-                    {t("transationDate")}
-                  </TableHead>
-                  <TableHead className="px-6 py-4 font-semibold text-center text-white">
-                    {t("amount")}
-                  </TableHead>
-                  <TableHead
-                    className={`px-6 py-4 font-semibold text-center text-white last:${isRtl ? "rounded-tl-xl" : "rounded-tr-xl"
-                      }`}
-                  >
-                    {t("status")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
+            <>
+              {/* Desktop Table - hidden on mobile */}
+              <div className="hidden md:block">
+                <Table className="w-full">
+                  {/* Table Header */}
+                  <TableHeader className="primary_bg_color text-white hover:!text-white">
+                    <TableRow className="text-white hover:!bg-transparent border-none">
+                      <TableHead
+                        className={`px-6 py-4 font-semibold text-center text-white first:${isRtl ? "rounded-tr-xl" : "rounded-tl-xl"
+                          }`}
+                      >
+                        {t("orderId")}
+                      </TableHead>
+                      <TableHead
+                        className={`px-6 py-4 font-semibold text-center text-white first:${isRtl ? "rounded-tr-xl" : "rounded-tl-xl"
+                          }`}
+                      >
+                        {t("transactionId")}
+                      </TableHead>
+                      <TableHead className="px-6 py-4 font-semibold text-center text-white">
+                        {t("paymentMethod")}
+                      </TableHead>
+                      <TableHead className="px-6 py-4 font-semibold text-center text-white">
+                        {t("transationDate")}
+                      </TableHead>
+                      <TableHead className="px-6 py-4 font-semibold text-center text-white">
+                        {t("amount")}
+                      </TableHead>
+                      <TableHead
+                        className={`px-6 py-4 font-semibold text-center text-white last:${isRtl ? "rounded-tl-xl" : "rounded-tr-xl"
+                          }`}
+                      >
+                        {t("status")}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-              {/* Table Body */}
-              <TableBody>
-                {transactions.map((row, index) => (
-                  <TableRow
+                  {/* Table Body */}
+                  <TableBody>
+                    {transactions.map((row, index) => (
+                      <TableRow
+                        key={row.order_id}
+                        className={`${"card_bg transition-colors"} ${index === transactions.length - 1
+                          ? "last-row"
+                          : "border-b"
+                          }`}
+                      >
+                        <TableCell className="px-6 py-4 text-start">
+                          {row.order_id}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-center">
+                          {row.txn_id ? row.txn_id : "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="flex justify-start">
+                            {paymentModes.map((paymentMode) => {
+                              if (paymentMode.method === row.type) {
+                                return (
+                                  <div
+                                    key={paymentMode.method}
+                                    className="flex items-center gap-3"
+                                  >
+                                    <Avatar className="h-[40px] w-[40px] rounded-[4px]" imgClassName="rounded-[8px]">
+                                      <AvatarImage
+                                        src={paymentMode.icon}
+                                        alt={paymentMode.method}
+                                        width={40}
+                                        height={40}
+                                      />
+                                    </Avatar>
+                                    <span className="text-sm font-medium capitalize">
+                                      {t(paymentMode.method)}
+                                    </span>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-center">
+                          {formatDate(row.transaction_date)}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-center font-medium">
+                          {showPrice(row.amount)}
+                        </TableCell>
+                        <TableCell
+                          className={
+                            getStatusStyle(row.status.toLowerCase()).text
+                          }
+                        >
+                          <span
+                            className={
+                              getStatusStyle(row.status.toLowerCase()).badge
+                            }
+                          >
+                            {t(row.status.toLowerCase())}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card Layout - visible only on mobile */}
+              <div className="flex flex-col gap-3 p-3 md:hidden">
+                {transactions.map((row) => (
+                  <div
                     key={row.order_id}
-                    className={`${"card_bg transition-colors"} ${index === transactions.length - 1
-                      ? "last-row"
-                      : "border-b"
-                      }`}
+                    className="card_bg rounded-lg border p-4 flex flex-col gap-3"
                   >
-                    <TableCell className="px-6 py-4 text-start">
-                      {row.order_id}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-center">
-                      {row.txn_id ? row.txn_id : "-"}
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <div className="flex justify-start">
+                    {/* Order ID & Status */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold">
+                        #{row.order_id}
+                      </span>
+                      <span
+                        className={
+                          getStatusStyle(row.status.toLowerCase()).badge
+                        }
+                      >
+                        {t(row.status.toLowerCase())}
+                      </span>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm description_color">{t("amount")}</span>
+                      <span className="text-sm font-medium">
+                        {showPrice(row.amount)}
+                      </span>
+                    </div>
+
+                    {/* Payment Method */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm description_color">{t("paymentMethod")}</span>
+                      <div className="flex items-center gap-2">
                         {paymentModes.map((paymentMode) => {
                           if (paymentMode.method === row.type) {
                             return (
                               <div
                                 key={paymentMode.method}
-                                className="flex items-center gap-3"
+                                className="flex items-center gap-2"
                               >
-                                <Avatar className="h-[40px] w-[40px] rounded-[4px]" imgClassName="rounded-[8px]">
+                                <Avatar className="h-[24px] w-[24px] rounded-[4px]">
                                   <AvatarImage
                                     src={paymentMode.icon}
                                     alt={paymentMode.method}
-                                    width={40}
-                                    height={40}
+                                    width={24}
+                                    height={24}
                                   />
                                 </Avatar>
-                                <span className="text-sm font-medium capitalize">
+                                <span className="text-sm capitalize">
                                   {t(paymentMode.method)}
                                 </span>
                               </div>
@@ -227,30 +320,26 @@ const PaymentHistory = () => {
                           return null;
                         })}
                       </div>
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-center">
-                      {formatDate(row.transaction_date)}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-center font-medium">
-                      {showPrice(row.amount)}
-                    </TableCell>
-                    <TableCell
-                      className={
-                        getStatusStyle(row.status.toLowerCase()).text
-                      }
-                    >
-                      <span
-                        className={
-                          getStatusStyle(row.status.toLowerCase()).badge
-                        }
-                      >
-                        {t(row.status.toLowerCase())}
+                    </div>
+
+                    {/* Transaction ID */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm description_color">{t("transactionId")}</span>
+                      <span className="text-sm truncate max-w-[150px]">
+                        {row.txn_id ? row.txn_id : "-"}
                       </span>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+
+                    {/* Date */}
+                    <div className="flex items-center justify-between border-t pt-2">
+                      <span className="text-xs description_color">
+                        {formatDate(row.transaction_date)}
+                      </span>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
 
           {/* Pagination - Only show when not loading and there are transactions */}
@@ -295,10 +384,8 @@ const PaymentHistory = () => {
                   {Array.from({ length: totalPages }, (_, index) => {
                     const page = index + 1;
                     if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 2 &&
-                        page <= currentPage + 2)
+                      page >= currentPage - 2 &&
+                      page <= currentPage + 2
                     ) {
                       return (
                         <PaginationItem

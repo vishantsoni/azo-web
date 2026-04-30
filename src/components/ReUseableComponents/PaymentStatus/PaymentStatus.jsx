@@ -15,7 +15,8 @@ const PaymentStatus = () => {
   const t = useTranslation();
   const router = useRouter();
   const dispatch = useDispatch();
-  const { status, payment_status, order_id, st } = router.query;
+  const { status, payment_status, order_id, st, method } = router.query;
+  const isCOD = method === "cod";
   const isReorderMode = useSelector(state => state.reorder.isReOrder);
   const [loopCount, setLoopCount] = useState(0);
 
@@ -131,6 +132,7 @@ const PaymentStatus = () => {
 
   // Helper to determine title
   const getStatusTitle = () => {
+    if (isSuccess && isCOD) return t("orderPlaced");
     if (isSuccess) return t("paymentSuccess");
     if (isPending) return t("paymentPending");
     return t("paymentFailed");
@@ -138,6 +140,7 @@ const PaymentStatus = () => {
 
   // Helper to determine description
   const getStatusDescription = () => {
+    if (isSuccess && isCOD) return t("orderPlacedCODText");
     if (isSuccess) return t("paymentSuccessText");
     if (isPending) return t("paymentPendingText");
     return t("paymentFailedText");

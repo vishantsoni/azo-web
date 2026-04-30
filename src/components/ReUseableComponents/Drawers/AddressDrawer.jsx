@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useGoogleMapsLoader, useRTL } from "@/utils/Helper";
@@ -9,16 +9,40 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/scrollbar";
 import { BsPlusLg } from "react-icons/bs";
-import { IoCheckmark } from "react-icons/io5";
+import { IoCheckmark, IoStar, IoStarOutline } from "react-icons/io5";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setDilveryDetails } from "@/redux/reducers/cartSlice";
-import { AddAddressApi } from "@/api/apiRoutes";
+import { getUserData } from "@/redux/reducers/userDataSlice";
+import { AddAddressApi, GetAddressCustomFieldsApi } from "@/api/apiRoutes";
 import { useTranslation } from "@/components/Layout/TranslationContext";
 import MiniLoader from "../MiniLoader";
 import AddressMap from "../LocationMapBox/AddressMap.jsx";
 import { logClarityEvent } from "@/utils/clarityEvents";
 import { AUTH_EVENTS } from "@/constants/clarityEventNames";
+
+const inputBase =
+  "w-full px-3 py-2.5 border background_color rounded-lg text-sm transition-all duration-300 focus:outline-none focus:border_color focus:light_bg_color";
+
+const FormField = ({ label, required, hint, children }) => (
+  <div className="flex flex-col gap-1">
+    <label className="text-xs font-semibold description_color flex items-center gap-1 flex-wrap">
+      {label}
+      {required && <span className="text-red-500 font-bold">*</span>}
+      {hint && (
+        <span className="text-[10px] font-normal opacity-50 ml-1">({hint})</span>
+      )}
+    </label>
+    {children}
+  </div>
+);
+
+const FieldSkeleton = () => (
+  <div className="flex flex-col gap-1 animate-pulse">
+    <div className="h-3 w-1/3 background_color rounded opacity-50" />
+    <div className="h-10 w-full background_color rounded-lg opacity-40" />
+  </div>
+);
 
 const AddressDrawer = ({
   open,
@@ -32,11 +56,18 @@ const AddressDrawer = ({
   const t = useTranslation();
   const dispatch = useDispatch();
   const dilveryDetails = useSelector((state) => state.cart);
+  const userData = useSelector(getUserData);
   const { isLoaded, loadError } = useGoogleMapsLoader();
   const isRTL = useRTL();
   const [isClicked, setIsClicked] = useState(false);
   const [activeAddress, setActiveAddress] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Custom fields state
+  const [customFields, setCustomFields] = useState([]);
+  const [customFieldValues, setCustomFieldValues] = useState({});
+  const [customFieldsLoading, setCustomFieldsLoading] = useState(false);
+  const customFieldsFetchedRef = useRef(false);
 
   const addressTypes = ["home", "office", "other"];
 
@@ -54,12 +85,61 @@ const AddressDrawer = ({
     }
   }, [defaultAddress, open]);
 
+  // Fetch custom field definitions (and optionally values for an address) once per open
+  useEffect(() => {
+    if (open && !customFieldsFetchedRef.current) {
+      customFieldsFetchedRef.current = true;
+      fetchCustomFields(defaultAddress?.id || "");
+    }
+    if (!open) {
+      customFieldsFetchedRef.current = false;
+    }
+  }, [open]);
+
+  const fetchCustomFields = async (addressId) => {
+    setCustomFieldsLoading(true);
+    try {
+      const response = await GetAddressCustomFieldsApi({ address_id: addressId });
+      if (response?.error === false) {
+        const fields = (response?.data?.custom_fields || []).filter(
+          (f) => f.visible
+        );
+        setCustomFields(fields);
+        applyStoredCustomFieldValues(response?.data?.customer_address_custom_fields || []);
+      }
+    } catch (error) {
+      console.error("Error fetching address custom fields:", error);
+    } finally {
+      setCustomFieldsLoading(false);
+    }
+  };
+
+  const fetchCustomFieldValues = async (addressId) => {
+    try {
+      const response = await GetAddressCustomFieldsApi({ address_id: addressId });
+      if (response?.error === false) {
+        applyStoredCustomFieldValues(response?.data?.customer_address_custom_fields || []);
+      }
+    } catch (error) {
+      console.error("Error fetching custom field values:", error);
+    }
+  };
+
+  const applyStoredCustomFieldValues = (storedValues) => {
+    const valuesMap = {};
+    storedValues.forEach((item) => {
+      valuesMap[item.custom_field_id] = item.value;
+    });
+    setCustomFieldValues(valuesMap);
+  };
+
+  const handleCustomFieldChange = (fieldId, value) => {
+    setCustomFieldValues((prev) => ({ ...prev, [fieldId]: value }));
+  };
+
   const [formValues, setFormValues] = useState({
     id: defaultAddress?.id ? defaultAddress?.id : "",
-    address: defaultAddress?.address ? defaultAddress?.address : "",
-    area: defaultAddress?.area ? defaultAddress?.area : "",
-    city: defaultAddress?.city_name ? defaultAddress?.city_name : "",
-    mobile: defaultAddress?.mobile ? defaultAddress?.mobile : "",
+    mobile: defaultAddress?.mobile ? defaultAddress?.mobile : userData?.phone ? userData?.phone : "",
     type: defaultAddress?.type ? defaultAddress?.type : "",
     is_default: defaultAddress?.is_default === "1" ? true : false,
   });
@@ -74,10 +154,7 @@ const AddressDrawer = ({
     if (defaultAddress) {
       setFormValues({
         id: defaultAddress.id || "",
-        address: defaultAddress.address || "",
-        area: defaultAddress.area || "",
-        city: defaultAddress.city_name || defaultAddress.city || "",
-        mobile: defaultAddress.mobile || "",
+        mobile: defaultAddress.mobile || userData?.phone || "",
         type: defaultAddress.type || "",
         is_default: defaultAddress.is_default === "1",
       });
@@ -89,8 +166,7 @@ const AddressDrawer = ({
     }
   }, [defaultAddress]);
 
-  const handleSelectAddress = (address) => {
-    // First validate the coordinates
+  const handleSelectAddress = async (address) => {
     const validLat = Number(address?.lattitude);
     const validLng = Number(address?.longitude);
 
@@ -102,194 +178,146 @@ const AddressDrawer = ({
     setActiveAddress(address);
     setIsClicked(false);
 
-    // Find the address in the addresses array to ensure we have the most up-to-date data
     const selectedAddress = addresses.find((add) => add.id === address?.id);
 
     if (selectedAddress) {
-      // Update form values - handle both city_name and city fields
-      // This ensures city is populated even if address uses different field name
-      // Also ensure all fields have fallback values to prevent empty form fields
       setFormValues({
         id: selectedAddress.id || "",
-        address: selectedAddress.address || "",
-        area: selectedAddress.area || "",
-        city: selectedAddress.city_name || selectedAddress.city || "",
-        mobile: selectedAddress.mobile || "",
+        mobile: selectedAddress.mobile || userData?.phone || "",
         type: selectedAddress.type || "",
         is_default: selectedAddress.is_default === "1",
       });
 
-      // Update map coordinates with validated numbers
-      const newCoordinates = {
-        lat: validLat,
-        lng: validLng
-      };
+      setMapCoordinates({ lat: validLat, lng: validLng });
 
-      // Update map coordinates
-      setMapCoordinates(newCoordinates);
+      // Fetch custom field values for this address
+      if (selectedAddress.id) {
+        await fetchCustomFieldValues(selectedAddress.id);
+      }
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // If it's the 'mobile' field, allow only digits
     if (name === "mobile") {
-      const digitsOnly = value.replace(/\D/g, ""); // Remove non-digit characters
-      setFormValues((prev) => ({
-        ...prev,
-        [name]: digitsOnly,
-      }));
+      const digitsOnly = value.replace(/\D/g, "");
+      setFormValues((prev) => ({ ...prev, [name]: digitsOnly }));
     } else {
-      // For other fields, update as usual
-      setFormValues((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      setFormValues((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleTypeChange = (type) => {
-    setFormValues((prev) => ({
-      ...prev,
-      type: type,
-    }));
+    setFormValues((prev) => ({ ...prev, type }));
   };
 
   const handleSetDefaultAddress = () => {
-    setFormValues((prev) => ({
-      ...prev,
-      is_default: !prev.is_default,
-    }));
+    setFormValues((prev) => ({ ...prev, is_default: !prev.is_default }));
   };
 
   const onLocationChange = (newAddresses) => {
-    setFormValues((prev) => {
-      return {
-        ...prev,
-        city: newAddresses.city,
-        address: newAddresses.address,
-        area: newAddresses.area,
-      };
-    });
-    setMapCoordinates({
-      lat: newAddresses.lat,
-      lng: newAddresses.lng,
-    });
+    setMapCoordinates({ lat: newAddresses.lat, lng: newAddresses.lng });
   };
 
   const clearForm = () => {
     setFormValues({
       id: "",
-      address: "",
-      area: "",
-      city: "",
-      mobile: "",
+      mobile: userData?.phone ? userData?.phone : "",
       type: "",
       is_default: false,
     });
-    setMapCoordinates({
-      lat: "",
-      lng: "",
-    });
+    setMapCoordinates({ lat: "", lng: "" });
+    setCustomFieldValues({});
   };
 
   const handleButtonClick = () => {
-    // Toggle add new address mode
     setIsClicked((prevState) => !prevState);
-    // Clear selected address
     setActiveAddress(null);
-    // Clear form values
     clearForm();
-    // Reset map coordinates to empty to trigger default location
-    setMapCoordinates({
-      lat: "",
-      lng: ""
-    });
+    setMapCoordinates({ lat: "", lng: "" });
+  };
+
+  const validateRequiredCustomFields = () => {
+    for (const field of customFields) {
+      if (!!field.required && !customFieldValues[field.id]) {
+        toast.error(`${t("pleaseEnter")} ${field.translated_label}`);
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleSaveAddress = async () => {
-    // Validation checks for required fields
     if (!formValues.type) {
       toast.error(t("pleaseSelectAddressType"));
-      return;
-    }
-    if (!formValues.address) {
-      toast.error(t("pleaseEnterAddressDetails"));
-      return;
-    }
-    if (!formValues.area) {
-      toast.error(t("pleaseEnterAreaDetails"));
-      return;
-    }
-    if (!formValues.city) {
-      toast.error(t("pleaseEnterCityDetails"));
       return;
     }
     if (!formValues.mobile) {
       toast.error(t("pleaseEnterMobileNumber"));
       return;
     }
+    if (!validateRequiredCustomFields()) return;
 
-    // Create the new address object from the form values
     const newAddress = {
-      id: formValues.id ? formValues.id : "",
-      type: formValues.type, // Assuming it's a home address; add logic to dynamically set this if needed
-      city_name: formValues.city,
-      address: formValues.address,
-      area: formValues.area,
+      id: formValues.id || "",
+      type: formValues.type,
       mobile: formValues.mobile,
       lattitude: mapCoordinates.lat,
       longitude: mapCoordinates.lng,
       is_default: formValues.is_default ? "1" : "0",
     };
 
+    // Build custom_fields array for API
+    const customFieldsPayload = customFields
+      .map((f) => ({
+        custom_field_id: f.id,
+        value: customFieldValues[f.id] || "",
+      }))
+      .filter((f) => f.value !== "");
+
     setIsLoading(true);
 
     try {
       const response = await AddAddressApi({
-        id: newAddress.id ? newAddress.id : "",
-        type: newAddress.type ? newAddress.type : "",
-        city_name: newAddress.city_name ? newAddress.city_name : "",
-        address: newAddress.address ? newAddress.address : "",
-        area: newAddress.area ? newAddress.area : "",
-        mobile: newAddress.mobile ? newAddress.mobile : "",
-        lattitude: newAddress.lattitude ? newAddress.lattitude : "",
-        longitude: newAddress.longitude ? newAddress.longitude : "",
-        is_default: newAddress.is_default ? newAddress.is_default : "",
+        id: newAddress.id,
+        type: newAddress.type,
+        mobile: newAddress.mobile,
+        lattitude: newAddress.lattitude,
+        longitude: newAddress.longitude,
+        is_default: newAddress.is_default,
+        custom_fields: customFieldsPayload.length > 0
+          ? JSON.stringify(customFieldsPayload)
+          : "",
       });
 
       if (response?.error === false) {
         const updatedAddress = response?.data;
 
         onUpdateAddress(updatedAddress);
-        // Check if the address already exists by comparing the id
         setAddresses((prevAddresses) => {
           const existingAddress = prevAddresses.find(
             (addr) => addr.id === updatedAddress.id
           );
           if (existingAddress) {
-            // If address exists, update it and move it to the top
             return [
               updatedAddress,
               ...prevAddresses.filter((addr) => addr.id !== updatedAddress.id),
             ];
           } else {
-            // If address doesn't exist, add it to the top of the list
             return [updatedAddress, ...prevAddresses];
           }
         });
 
-        // Set the new address as the default
         setDefaultAddress(updatedAddress);
 
         dispatch(
           setDilveryDetails({
-            ...dilveryDetails, // Keep the existing delivery details
-            dilevryLocation: updatedAddress, // Update dilevryLocation with the new address
+            ...dilveryDetails,
+            dilevryLocation: updatedAddress,
           })
         );
-        // Capture address creation for analytics – helps tie bookings to address mix.
+
         logClarityEvent(AUTH_EVENTS.ADDRESS_ADDED, {
           address_id: updatedAddress?.id,
           is_default: updatedAddress?.is_default === "1",
@@ -297,8 +325,8 @@ const AddressDrawer = ({
             updatedAddress?.lattitude && updatedAddress?.longitude
           ),
         });
+
         setIsLoading(false);
-        // CLOSE THE DRAWER
         handleClose();
         toast.success(response?.message);
       }
@@ -316,14 +344,27 @@ const AddressDrawer = ({
     1200: { slidesPerView: 2.2 },
   };
 
+  // Custom fields to render: exclude file type fields for now; sort by sort_order
+  const visibleCustomFields = customFields
+    .filter((f) => f.field_type !== "file")
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+  // Form is valid only when all required fields are filled
+  const isFormValid =
+    !!formValues.type &&
+    !!formValues.mobile &&
+    customFields.every(
+      (f) => !f.required || !!customFieldValues[f.id]
+    );
+
   return (
     <Drawer open={open} onClose={handleClose} closeOnClickOutside={false}>
       <DrawerContent
         className={cn(
           "max-w-full md:max-w-[90%] lg:max-w-[85%] xl:max-w-7xl mx-auto rounded-tr-[18px] rounded-tl-[18px]",
-          "overflow-y-auto",
           "transition-all duration-300",
-          "after:!content-none"
+          "after:!content-none",
+          "!h-auto"
         )}
       >
         <div className="address w-full flex flex-col lg:flex-row gap-6 py-4 px-4 md:p-6 lg:p-8 xl:p-10">
@@ -350,7 +391,7 @@ const AddressDrawer = ({
           </div>
 
           {/* Right side: Address fields */}
-          <div className="w-full lg:w-1/2 flex flex-col gap-4 md:gap-5 max-h-[400px] md:max-h-full overflow-y-auto">
+          <div className="w-full lg:w-1/2 flex flex-col gap-4 md:gap-5 max-h-[80vh] lg:max-h-[650px]">
             <div className="flex items-center justify-between w-full">
               <h2 className="text-xl md:text-2xl font-bold">
                 {isClicked ? t("addNewAddress") : t("selectAddress")}
@@ -368,107 +409,170 @@ const AddressDrawer = ({
                 </span>
               </button>
             </div>
-
-            <div className="address_div w-full">
-              <Swiper
-                spaceBetween={10}
-                slidesPerView="auto"
-                modules={[FreeMode]}
-                freeMode={true}
-                key={isRTL}
-                dir={isRTL ? "rtl" : "ltr"}
-                className="!pb-2"
-              >
-                {addresses.map((address, index) => (
-                  <SwiperSlide key={address.id} className="!w-auto min-w-[180px] max-w-[250px]">
-                    <div
-                      onClick={() => handleSelectAddress(address)}
-                      className={`p-3 border ${activeAddress?.id === address.id ? "border_color" : ""
-                        } flex flex-col gap-2 items-start rounded-xl cursor-pointer`}
+            {addresses && addresses.length > 0 &&
+              <div className="address_div w-full">
+                <Swiper
+                  spaceBetween={10}
+                  slidesPerView="auto"
+                  modules={[FreeMode]}
+                  freeMode={true}
+                  key={isRTL}
+                  dir={isRTL ? "rtl" : "ltr"}
+                  className="!pb-2"
+                >
+                  {addresses.map((address) => (
+                    <SwiperSlide
+                      key={address.id}
+                      className="!w-auto !h-auto min-w-[180px] max-w-[250px]"
                     >
                       <div
-                        className={`text-sm md:text-base flex items-center justify-between ${activeAddress?.id === address.id
-                            ? "primary_text_color"
-                            : "description_color"
-                          } w-full`}
+                        onClick={() => handleSelectAddress(address)}
+                        className={`h-full p-3 border ${activeAddress?.id === address.id ? "border_color" : ""
+                          } flex flex-col gap-2 items-start rounded-xl cursor-pointer`}
                       >
-                        <span>{address.type}</span>
-                        {activeAddress?.id === address.id && (
-                          <IoCheckmark size={16} />
-                        )}
+                        <div
+                          className={`text-sm md:text-base flex items-center justify-between ${activeAddress?.id === address.id
+                              ? "primary_text_color"
+                              : "description_color"
+                            } w-full`}
+                        >
+                          <span>{address.type}</span>
+                          {activeAddress?.id === address.id && (
+                            <IoCheckmark size={16} />
+                          )}
+                        </div>
+                        <div className="text-base font-medium line-clamp-1">
+                          {address.city_name || address.city}
+                        </div>
                       </div>
-                      <div className="text-base font-medium line-clamp-1">
-                        {address.city_name || address.city}
-                      </div>
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-
-            <div className="address_fields flex flex-col gap-3 md:gap-4">
-              {["area", "address", "city", "mobile"].map((field) => (
-                <input
-                  key={field}
-                  name={field}
-                  type="text"
-                  value={formValues[field]}
-                  onChange={handleInputChange}
-                  placeholder={
-                    {
-                      area: t("area"),
-                      address: t("addressDetail"),
-                      city: t("city"),
-                      mobile: t("mobile"),
-                    }[field]
-                  }
-                  className="w-full p-3 border background_color rounded-lg transition-all duration-300 focus:outline-none focus:border_color focus:light_bg_color focus:primary_text_color"
-                />
-              ))}
-
-              <div className="types flex items-center gap-2 flex-wrap">
-                {addressTypes.map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => handleTypeChange(type)}
-                    className={`py-1 px-3 border rounded-lg transition-colors ${formValues.type === type
-                        ? "light_bg_color primary_text_color border_color"
-                        : "background_color"
-                      }`}
-                  >
-                    {t(type)}
-                  </button>
-                ))}
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </div>
-              <div className="default_address flex items-center gap-2">
+            }
+
+            {/* Scrollable fields */}
+            <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4 min-h-0">
+
+              {/* Mobile */}
+              <FormField label={t("mobile")} required>
+                <input
+                  name="mobile"
+                  type="text"
+                  value={formValues.mobile}
+                  onChange={handleInputChange}
+                  placeholder={`${t("enter")} ${t("mobile")}`}
+                  className={inputBase}
+                />
+              </FormField>
+
+              {/* Dynamic custom fields */}
+              {customFieldsLoading ? (
+                <>
+                  <FieldSkeleton />
+                  <FieldSkeleton />
+                  <FieldSkeleton />
+                </>
+              ) : (
+                visibleCustomFields.map((field) => (
+                  <FormField
+                    key={field.id}
+                    label={field.translated_label}
+                    required={!!field.required}
+                  >
+                    <input
+                      type="text"
+                      value={customFieldValues[field.id] || ""}
+                      onChange={(e) =>
+                        handleCustomFieldChange(field.id, e.target.value)
+                      }
+                      placeholder={`${t("enter")} ${field.translated_label}`}
+                      className={inputBase}
+                    />
+                  </FormField>
+                ))
+              )}
+
+              {/* Address Type */}
+              <FormField label={t("addressType")} required>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {addressTypes.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => handleTypeChange(type)}
+                      className={`py-2 px-4 border rounded-lg transition-all text-sm font-medium ${formValues.type === type
+                          ? "light_bg_color primary_text_color border_color"
+                          : "background_color description_color"
+                        }`}
+                    >
+                      {t(type)}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
+
+              {/* Set as default — toggle card */}
+              <label
+                htmlFor="setDefaultAddress"
+                className={`flex items-center justify-between cursor-pointer px-4 py-3 border rounded-xl transition-all duration-300 ${formValues.is_default
+                    ? "light_bg_color border_color"
+                    : "background_color"
+                  }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className={`transition-colors duration-300 ${formValues.is_default ? "primary_text_color" : "description_color"}`}>
+                    {formValues.is_default
+                      ? <IoStar size={18} />
+                      : <IoStarOutline size={18} />
+                    }
+                  </span>
+                  <span className={`text-sm font-medium transition-colors duration-300 ${formValues.is_default ? "primary_text_color" : ""}`}>
+                    {t("setDefaultAddress")}
+                  </span>
+                </div>
+                {/* Toggle switch */}
+                <div className={`relative w-10 h-[22px] rounded-full transition-colors duration-300 flex-shrink-0 ${formValues.is_default ? "primary_bg_color" : "bg-gray-200"
+                  }`}>
+                  <div className={`absolute top-[2px] w-[18px] h-[18px] bg-white rounded-full shadow transition-transform duration-300 ${formValues.is_default ? "translate-x-[20px]" : "translate-x-[2px]"
+                    }`} />
+                </div>
                 <input
                   type="checkbox"
                   id="setDefaultAddress"
                   checked={formValues.is_default}
                   onChange={handleSetDefaultAddress}
-                  className="form-checkbox h-4 w-4 !bg-black border-gray-300 rounded focus:ring-primary_color"
+                  className="sr-only"
                 />
-                <label
-                  htmlFor="setDefaultAddress"
-                  className="text-xs md:text-sm font-medium"
+              </label>
+            </div>
+
+            {/* Sticky submit button */}
+            <div className="flex-shrink-0 pt-3 border-t flex items-center gap-3">
+              {/* Clear button */}
+              <button
+                onClick={clearForm}
+                className="px-5 py-3 border rounded-xl text-sm font-medium description_color background_color transition-all duration-200 hover:border_color hover:primary_text_color flex-shrink-0"
+              >
+                {t("clear") || "Clear"}
+              </button>
+
+              {/* Continue button */}
+              {isLoading ? (
+                <button className="primary_bg_color primary_text_color py-3 px-8 rounded-xl flex-1 flex items-center justify-center">
+                  <MiniLoader />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSaveAddress}
+                  disabled={!isFormValid}
+                  className={`flex-1 p-3 rounded-xl text-sm md:text-base font-medium text-white transition-all duration-200 ${isFormValid
+                      ? "primary_bg_color cursor-pointer"
+                      : "bg-gray-300 cursor-not-allowed opacity-60"
+                    }`}
                 >
-                  {t("setDefaultAddress")}
-                </label>
-              </div>
-              <div className="submit_address mt-1 md:mt-2 mb-2">
-                {isLoading ? (
-                  <button className="primary_bg_color primary_text_color py-3 px-8 rounded-xl w-full flex items-center justify-center">
-                    <MiniLoader />
-                  </button>
-                ) : (
-                  <button
-                    className="w-full primary_bg_color text-white p-3 rounded-xl text-sm md:text-base font-normal"
-                    onClick={handleSaveAddress}
-                  >
-                    {t("continue")}
-                  </button>
-                )}
-              </div>
+                  {t("continue")}
+                </button>
+              )}
             </div>
           </div>
         </div>

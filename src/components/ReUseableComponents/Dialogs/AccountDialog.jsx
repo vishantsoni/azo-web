@@ -70,8 +70,9 @@ const AccountDialog = ({ isVisible, onOpenChange, userData, handleLogout }) => {
         <DropdownMenuLabel className="flex items-center space-x-2">
           <Avatar className="w-[56px] h-[56px]">
             <AvatarImage
-              src={userData?.image ? userData?.image : placeholderImage}
+              src={userData?.image}
               alt={userData?.username}
+              onError={placeholderImage}
             />
             <AvatarFallback>
               {" "}

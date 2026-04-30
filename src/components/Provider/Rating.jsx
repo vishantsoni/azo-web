@@ -21,13 +21,13 @@ const Rating = ({ rating }) => {
         .map((_, index) => (
           <IoIosStar
             key={`full-${index}`}
-            className="text-[#FF9900]"
+            className="rating_icon_color"
             size={26}
           />
         ))}
 
       {/* Render half star if applicable */}
-      {hasHalfStar && <IoIosStarHalf className="text-[#FF9900]" size={26} />}
+      {hasHalfStar && <IoIosStarHalf className="rating_icon_color" size={26} />}
 
       {/* Render empty stars */}
       {Array(emptyStars)
@@ -35,7 +35,7 @@ const Rating = ({ rating }) => {
         .map((_, index) => (
           <IoIosStarOutline
             key={`empty-${index}`}
-            className="text-[#FF9900]"
+            className="rating_icon_color"
             size={26}
           />
         ))}

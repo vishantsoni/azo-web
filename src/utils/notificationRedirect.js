@@ -7,16 +7,35 @@
  * It handles all customer notification types and de[termines the appropriate route
  * based on the notification data structure.
  * 
- * Notification types that require redirects:
- * - Booking-related notifications -> /booking/[booking_id]
- * - Job request notifications -> /my-service-request-details/[job_id]
- * - Blog notifications -> /blog-details/[blog_slug]
- * - Provider notifications -> /provider-details/[provider_slug]
- * - Service details -> /provider-details/[provider_slug]/[service_slug]
- * - Category notifications -> /service/[category_slug] or /service/[parent1]/[parent2]/...[category_slug]
- * - Chat notifications -> /chats
- * - Privacy Policy -> /privacy-policy
- * - Terms and Conditions -> /terms-and-conditions
+ * Notification type → redirect mapping (all customer types):
+ *
+ * BOOKING (→ /booking/inv-[id]):
+ *   booking_status, booking_confirmed, new_booking_confirmation_to_customer,
+ *   booking_rescheduled, booking_cancelled, booking_completed, booking_started,
+ *   booking_ended, order, payment, additional_charges, rating_request,
+ *   online_payment_failed/success/pending, payment_refund_executed/successful,
+ *   review_request_after_booking_completion
+ *
+ * BIDS (→ /my-service-request-details/[job_id]):
+ *   bid, bid_on_custom_job_request
+ *
+ * CONTENT:
+ *   new_blog          → /blog-details/[blog_slug]
+ *   provider          → /provider-details/[provider_slug]
+ *   service           → /provider-details/[provider_slug]/[service_slug]
+ *   category          → /service/[parent1]/[parent2]/.../[category_slug]
+ *   url               → [url from payload]
+ *
+ * PAGES:
+ *   privacy_policy_changed      → /privacy-policy
+ *   terms_and_conditions_changed → /terms-and-conditions
+ *
+ * CHAT:
+ *   chat, new_message, message  → /chats
+ *
+ * NO REDIRECT (return null):
+ *   user_account_active, user_account_deactive, user_blocked,
+ *   user_reported, general, maintenance_mode
  * 
  * NOTE: The `click_action` field (e.g., "FLUTTER_NOTIFICATION_CLICK") is Flutter-specific
  * and is IGNORED on web. Web notifications use the service worker's 'notificationclick' 
@@ -57,28 +76,37 @@ export const getNotificationRedirectUrl = (notificationData) => {
   // Booking-related notifications - redirect to booking details
   // These all redirect to the same booking details page
   const bookingRelatedTypes = [
+    // Core booking lifecycle
     'booking_status',
     'booking status',
     'booking_confirmed',
+    'new_booking_confirmation_to_customer', // customer booking confirmation
     'booking_rescheduled',
     'booking_cancelled',
     'booking_completed',
     'booking_started',
     'booking_ended',
-    'added_additional_charges',
-    'added additional charges',
+    // Order & payment
+    'order',                      // generic order notification
+    'payment',                    // generic payment notification
     'online_payment_failed',
     'online payment failed',
     'online_payment_success',
     'online payment success',
     'online_payment_pending',
     'online payment pending',
-    'review_request_after_booking_completion',
-    'review the request after booking completion',
     'payment_refund_executed',
     'payment refund executed',
     'payment_refund_successful',
     'payment refund successful',
+    // Additional charges
+    'additional_charges',         // official type from backend
+    'added_additional_charges',   // legacy variant
+    'added additional charges',
+    // Rating / review
+    'rating_request',             // post-booking rating prompt
+    'review_request_after_booking_completion',
+    'review the request after booking completion',
   ];
 
   if (bookingRelatedTypes.includes(type)) {
@@ -97,15 +125,20 @@ export const getNotificationRedirectUrl = (notificationData) => {
     return null;
   }
 
-  // Job request notification - redirect to job details
-  if (type === 'bid_on_custom_job_request' || type === 'bid on a custom job request') {
-    // Get job ID from notification data
-    const jobId = notificationData.custom_job_request_id
-    
+  // Job request / bid notifications - redirect to service request details
+  if (
+    type === 'bid' ||
+    type === 'bid_on_custom_job_request' ||
+    type === 'bid on a custom job request'
+  ) {
+    const jobId = notificationData.custom_job_request_id ||
+                  notificationData.customJobRequestId ||
+                  notificationData.job_id ||
+                  notificationData.jobId;
+
     if (jobId) {
       return `/my-service-request-details/${jobId}`;
     }
-    // If no job ID, return null (can't redirect without ID)
     return null;
   }
 
@@ -138,13 +171,21 @@ export const getNotificationRedirectUrl = (notificationData) => {
     return '/terms-and-conditions';
   }
 
-  // Notifications that don't require redirects (marked with ✅ in requirements):
-  // - User Account Activated
-  // - User Account Deactivated
-  // - Report
-  // - Block
-  // - Maintenance Mode
-  // These return null (no redirect needed)
+  // Notifications that intentionally have no redirect:
+  // user_account_active, user_account_deactive  → account status change, stay on current page
+  // user_blocked, user_reported                 → moderation actions, no target page
+  // general                                     → informational, no specific target
+  // maintenance_mode                            → app-wide notice, no specific target
+  if (
+    type === 'user_account_active' ||
+    type === 'user_account_deactive' ||
+    type === 'user_blocked' ||
+    type === 'user_reported' ||
+    type === 'general' ||
+    type === 'maintenance_mode'
+  ) {
+    return null;
+  }
 
   // Service details notification - redirect to provider-details/provider-slug/service-slug
   // This handles notifications for specific services from a provider

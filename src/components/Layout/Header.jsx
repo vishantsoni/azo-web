@@ -16,7 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useCart } from "@/hooks/useCart";
 import { clearCart, selectTotalItems } from "@/redux/reducers/cartSlice";
 import { clearUserData, getUserData } from "@/redux/reducers/userDataSlice";
-import { useIsLogin, useRTL } from "@/utils/Helper";
+import { useIsDarkMode, useIsLogin, useRTL } from "@/utils/Helper";
 import { useDispatch, useSelector } from "react-redux";
 import CustomImageTag from "../ReUseableComponents/CustomImageTag";
 import EditProfileModal from "../auth/EditProfile";
@@ -53,6 +53,7 @@ const SidebarContent = lazy(() => import("./SidebarContent"));
 const Header = () => {
   const t = useTranslation();
   const router = useRouter();
+  const isDarkMode = useIsDarkMode()
   const isRTL = useRTL();
   const pathName = usePathname();
   const dispatch = useDispatch();
@@ -60,6 +61,7 @@ const Header = () => {
   const userData = useSelector(getUserData);
   const settingsData = useSelector((state) => state?.settingsData);
   const websettings = settingsData?.settings?.web_settings;
+  const general_settings = settingsData?.settings?.general_settings;
   // Get FCM token from userDataSlice (not settingsData)
   const fcmToken = useSelector((state) => state?.userData?.fcmToken);
   const isLoggedIn = useIsLogin(); // Reactive hook - automatically updates when login state changes
@@ -291,7 +293,7 @@ const Header = () => {
   }, [hasLatLong]);
 
   return (
-    <header className="w-full sticky top-0 z-50 card_bg dark:bg-gray-900 !border-b !border-[#21212114] shadow-[0px_15px_47px_0px_rgba(0,0,0,0.04)]">
+    <header className="w-full sticky top-0 z-50 card_bg !border-b !border-[var(--neutral-bg)] dark:!border-none shadow-[0px_15px_47px_0px_rgba(0,0,0,0.04)]">
       <div>
         {/* Top header */}
         <TopHeader />
@@ -301,7 +303,7 @@ const Header = () => {
           <div className="container mx-auto flex justify-between items-center">
             <CustomLink href={hasLatLong ? "/" : "/home"} title={t("home")} className="relative">
               <CustomImageTag
-                src={websettings?.web_logo}
+                src={isDarkMode ? websettings?.footer_logo : websettings?.web_logo}
                 alt={t("logo")}
                 className="h-[40px] md:h-[60px] aspect-logo max-w-[220px] safari-logo"
               />
@@ -326,7 +328,7 @@ const Header = () => {
               {/* Location Display/Action - Only on non-landing pages */}
               {!((pathName === "/" || pathName === "/home")) && (
                 <div
-                  className="hidden md:flex items-center gap-2 cursor-pointer bg-gray-100 dark:bg-gray-800 p-2 rounded-md max-w-[200px]"
+                  className="hidden md:flex items-center gap-2 cursor-pointer bg-gray-100 dark:bg-gray-800 p-2 rounded-lg max-w-[200px]"
                   onClick={() => setIsLocationModalOpen(true)}
                 >
                   <IoLocationSharp size={20} className="primary_text_color min-w-[20px]" />
@@ -346,7 +348,7 @@ const Header = () => {
                   {isBecomeProviderPage && isRegisterAsProviderAllow && (
                     <button
                       onClick={handleOpenRegisterAsProviderModal}
-                      className="bg-[#29363F] px-4 py-2 text-white rounded-lg flex items-center gap-2 hover:primary_bg_color transition-all duration-300"
+                      className="pos_btn_bg px-4 py-2 text-white rounded-lg flex items-center gap-2 hover:primary_bg_color transition-all duration-300"
                     >
                       {t("registerAsProvider")}
                     </button>
@@ -375,7 +377,7 @@ const Header = () => {
                   {isBecomeProviderPage && isRegisterAsProviderAllow ? (
                     <button
                       onClick={handleOpenRegisterAsProviderModal}
-                      className="bg-[#29363F] px-4 py-2 text-white rounded-lg flex items-center gap-2 hover:primary_bg_color transition-all duration-300"
+                      className="pos_btn_bg px-4 py-2 text-white rounded-lg flex items-center gap-2 hover:primary_bg_color transition-all duration-300"
                     >
                       {t("registerAsProvider")}
                     </button>
@@ -491,6 +493,7 @@ const Header = () => {
                       toggleTheme={toggleTheme}
                       // Web settings
                       websettings={websettings}
+                      general_settings={general_settings}
                       // Navigation
                       navigationItems={navigationItems}
                       hasLatLong={hasLatLong}

@@ -30,7 +30,7 @@ const GeneralBookingCard = ({ data }) => {
   const services = data?.services;
   const isCompleted = data?.status === "completed";
   const statusName = statusNames[data?.status];
-  const statusColor = statusColors[data?.status?.toLowerCase()] || "#6b7280";
+  const statusColor = statusColors[data?.status?.toLowerCase()] || "var(--status-default)";
 
   const settings = useSelector((state) => state.settingsData?.settings);
 
@@ -40,11 +40,15 @@ const GeneralBookingCard = ({ data }) => {
   const isProviderPostBookingChatAvailable =
     data?.post_booking_chat === "1";
 
+  const taxConfig = useSelector((state) => state?.settingsData?.settings?.system_tax_settings);
+  const showTax = taxConfig?.show_on_checkout === 1 || taxConfig?.show_on_checkout === "1";
+
   const translatedServiceTitle = services[0]?.translated_title ? services[0]?.translated_title : services[0]?.service_title;
   const translatedCompanyName = data?.translated_company_name ? data?.translated_company_name : data?.company_name;
 
   const handleChat = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!isLoggedIn) {
       dispatch(openLoginModal());
       return false;
@@ -62,7 +66,9 @@ const GeneralBookingCard = ({ data }) => {
       console.log(error);
     }
   };
-  const handleReOrder = async () => {
+  const handleReOrder = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
       const response = await getCartApi({
         order_id: data?.id,
@@ -86,7 +92,7 @@ const GeneralBookingCard = ({ data }) => {
               at_store: reorderData.at_store,
               is_pay_later_allowed: reorderData.is_pay_later_allowed,
               is_online_payment_allowed: reorderData.is_online_payment_allowed,
-              sub_total: reorderData.sub_total,
+              sub_total: showTax ? reorderData.sub_total_without_tax : reorderData.sub_total,
               overall_amount: reorderData.overall_amount,
             },
             items: reorderData.data,
@@ -106,6 +112,7 @@ const GeneralBookingCard = ({ data }) => {
   };
 
   return (
+    <CustomLink href={`/booking/${data?.slug}`} className="block">
     <div className="border rounded-lg p-4 flex flex-col justify-between gap-4 card_bg">
       {/* Top Section */}
       <div className="flex flex-wra md:flex-nowrap items-center justify-between gap-4 w-full">
@@ -190,11 +197,9 @@ const GeneralBookingCard = ({ data }) => {
       <div className="flex items-center gap-3">
         {isCompleted ? (
           <>
-            <CustomLink href={`/booking/${data?.slug}`} className="w-full">
-              <button className="p-3 border border_color rounded-lg bg-transparent primary_text_color max-[350px]:w-max w-full">
-                {t("viewBooking")}
-              </button>
-            </CustomLink>
+            <button className="p-3 border border_color rounded-lg bg-transparent primary_text_color max-[350px]:w-max w-full">
+              {t("viewBooking")}
+            </button>
             {data?.is_reorder_allowed === "1" && (
               <button
                 className="p-3 border rounded-lg primary_bg_color text-white w-full"
@@ -214,15 +219,14 @@ const GeneralBookingCard = ({ data }) => {
                 <BsChatSquareDotsFill size={22} />
               </button>
             )}
-            <CustomLink href={`/booking/${data?.slug}`} className="w-full">
-              <button className="p-3 border border_color rounded-lg bg-transparent primary_text_color w-full">
-                {t("viewBooking")}
-              </button>
-            </CustomLink>
+            <button className="p-3 border border_color rounded-lg bg-transparent primary_text_color w-full">
+              {t("viewBooking")}
+            </button>
           </>
         )}
       </div>
     </div>
+    </CustomLink>
   );
 };
 

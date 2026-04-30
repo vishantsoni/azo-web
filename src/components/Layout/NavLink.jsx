@@ -8,7 +8,7 @@ const NavLink = ({ href, label, isActive, title }) => {
     return (
         <CustomLink
             href={href}
-            className={`relative group text-base font-normal hover:primary_text_color transition-colors ${isActive ? "primary_text_color" : ""
+            className={`relative group text-base font-normal text_color hover:primary_text_color transition-colors ${isActive ? "primary_text_color" : ""
                 }`}
             title={title}
         >

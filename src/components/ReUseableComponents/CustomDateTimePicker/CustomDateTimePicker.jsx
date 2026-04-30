@@ -225,7 +225,7 @@ const CustomDateTimePicker = ({ value, onChange, onClose, minDateTime = null, ty
                     isTimeDisabled(selectedHour, selectedMinute, period) && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  {period}
+                  {t(period.toLowerCase())}
                 </button>
               ))}
             </div>

@@ -491,10 +491,7 @@ export function useCheckoutLogic() {
                 payment_method: "cod",
             });
             setIsProcessingCheckout(false);
-            toast.success(t("paymentSuccessWithCOD"));
-            dispatch(isReorderMode ? clearReorder() : clearCart());
-            dispatch(clearCheckoutData());
-            router.push(`/booking/inv-${orderId}`);
+            router.push(`/payment-status?order_id=${orderId}&status=successful&method=cod`);
         } catch {
             logClarityEvent(PAYMENT_EVENTS.PAYMENT_FAILED, {
                 payment_method: "cod",

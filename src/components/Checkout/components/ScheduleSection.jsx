@@ -37,7 +37,7 @@ const ScheduleSection = ({
                             <span
                                 className={`${dilveryDetails?.dilveryDate
                                     ? "light_bg_color primary_text_color"
-                                    : "bg-[#2121212E]"
+                                    : "neutral_overlay"
                                     } p-3 rounded-[8px]`}
                             >
                                 <BsCalendar3Week size={22} />
@@ -57,7 +57,7 @@ const ScheduleSection = ({
                             <span
                                 className={`${dilveryDetails?.dilveryTime
                                     ? "light_bg_color primary_text_color"
-                                    : "bg-[#2121212E]"
+                                    : "neutral_overlay"
                                     } p-3 rounded-[8px]`}
                             >
                                 <IoTimeOutline size={22} />
@@ -77,7 +77,7 @@ const ScheduleSection = ({
 
                     {/* Time-slot warning banner */}
                     {dilveryDetails?.dilveryTimeMessage && (
-                        <span className="w-full text-center text-sm bg-[#FFEEC5] p-2 rounded-md text-[#B39651] dark:bg-[#FFDA7F] mt-1 flex items-center justify-center gap-1">
+                        <span className="w-full text-center text-sm warning_banner p-2 rounded-md dark:warning_banner mt-1 flex items-center justify-center gap-1">
                             <FaInfoCircle size={16} />
                             {dilveryDetails.dilveryTimeMessage}
                         </span>
@@ -139,7 +139,7 @@ const ScheduleSection = ({
                 {/* Collapsed "Add Instruction" button */}
                 {!activeNotes && (
                     <button
-                        className={`mt-4 flex items-center ${note ? "justify-start" : "justify-center"} p-3 rounded-md bg-[#2121212E] w-full gap-2`}
+                        className={`mt-4 flex items-center ${note ? "justify-start" : "justify-center"} p-3 rounded-md neutral_overlay w-full gap-2`}
                         onClick={onToggleNotes}
                     >
                         <MdModeEdit size={22} />

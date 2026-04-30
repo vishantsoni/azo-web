@@ -25,7 +25,7 @@ const RecentBookingCard = ({ booking }) => {
   const isLoggedIn = useIsLogin(); // Reactive hook - automatically updates when login state changes
   const [downloading, setDownloading] = useState(false);
   const service = booking?.services[0];
-  const statusColor = statusColors[booking?.status?.toLowerCase()] || "#6b7280"; // Default to gray if status is unknown
+  const statusColor = statusColors[booking?.status?.toLowerCase()] || "var(--status-default)"; // Default to gray if status is unknown
   const statusName = statusNames[booking?.status];
 
   const translatedCompanyName = booking?.translated_company_name ? booking?.translated_company_name : booking?.company_name;
@@ -62,7 +62,7 @@ const RecentBookingCard = ({ booking }) => {
   return (
     <div className="card_bg rounded-[18px] border p-6 flex flex-col items-center justify-center hover:border_color transition-all duration-300">
       {/* status section */}
-      <div className="flex items-center justify-between w-full border-b border-[#2121212E] pb-[18px]">
+      <div className="flex items-center justify-between w-full border-b border-[var(--neutral-overlay)] pb-[18px]">
         <span className="text-base font-normal description_color">
           {t("status")}
         </span>
@@ -88,7 +88,7 @@ const RecentBookingCard = ({ booking }) => {
             </div>
             <div className="flex flex-col justify-start">
               <span className="text-base font-medium line-clamp-1">{translatedServiceTitle}</span>
-              <span className="flex items-center text-sm font-medium text-[#2121219E] dark:text-white gap-2">
+              <span className="flex items-center text-sm font-medium description_color dark:text-white gap-2">
                 <span>{showPrice(service?.price)}</span>
                 <span>x{service?.quantity}</span>
               </span>
@@ -96,7 +96,7 @@ const RecentBookingCard = ({ booking }) => {
           </div>
           {/* {booking.serviceCount > 1 && */}
           <div
-            className={`w-full text-[#2121219E] dark:text-white text-base font-normal ${booking?.services.length > 1 ? "pt-[16px]" : "pt-[40px]"
+            className={`w-full description_color dark:text-white text-base font-normal ${booking?.services.length > 1 ? "pt-[16px]" : "pt-[40px]"
               }`}
           >
             {booking?.services.length > 1 && (
@@ -117,7 +117,7 @@ const RecentBookingCard = ({ booking }) => {
           }`}
       >
         <div className="flex items-center justify-start gap-1 text-base font-normal w-full">
-          <span className="text-[#2121219E] dark:text-white"> {t("by")}</span>
+          <span className="description_color dark:text-white"> {t("by")}</span>
           <span> {translatedCompanyName}</span>
         </div>
       </div>

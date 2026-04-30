@@ -15,7 +15,7 @@ const ProviderServices = ({ data }) => {
   const translatedTitle = data?.translated_title ? data?.translated_title : data?.title;
   const translatedDescription = data?.translated_description ? data?.translated_description : data?.description;
   return (
-    <div className="provider services relative bg-[#0277FA0A]">
+    <div className="provider services relative bg-[var(--light-bg-color)]">
       <div className="py-8 md:py-20 container mx-auto">
         {/* Section Header */}
         <CommanCenterText
@@ -42,7 +42,7 @@ const ProviderServices = ({ data }) => {
           {visibleServices < data?.categories?.length && (
             <div className="flex justify-center mt-8">
               <button
-                className="px-6 py-2 bg-[#2D2C2F] text-white font-semibold rounded-lg hover:primary_bg_color transition-colors duration-300"
+                className="px-6 py-2 dark_btn_bg text-white font-semibold rounded-lg hover:primary_bg_color transition-colors duration-300"
                 onClick={loadMore}
               >
                 {t("loadMore")}

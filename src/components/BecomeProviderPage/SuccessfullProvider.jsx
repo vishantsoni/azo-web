@@ -56,7 +56,7 @@ const SuccessfullProvider = ({ data }) => {
           description={translatedDescription}
         />
 
-        <div className="relative bg-[#0277FA0A] overflow-hidden rounded-[30px] py-10 px-4 md:px-8 md:py-20 lg:px-16">
+        <div className="relative bg-[var(--light-bg-color)] overflow-hidden rounded-[30px] py-10 px-4 md:px-8 md:py-20 lg:px-16">
           <img
             loading="lazy"
             src={linesbg1.src}

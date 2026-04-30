@@ -193,7 +193,7 @@ const BookingDetails = () => {
   );
 
   const statusColor =
-    statusColors[bookingData?.status?.toLowerCase()] || "#6b7280"; // Default to gray if status is unknown
+    statusColors[bookingData?.status?.toLowerCase()] || "var(--status-default)"; // Default to gray if status is unknown
   const statusName = statusNames[bookingData?.status];
 
   const handleCopyOtp = (otp) => {
@@ -911,6 +911,7 @@ const BookingDetails = () => {
           ? selectedCustomJobRequestId
           : "",
         images_to_delete: imagesToDelete, // ✅ Pass removed images as array
+        custom_request_order: selectedCustomJobRequestId ? 1 : "",
       });
 
       if (response?.error === false) {
@@ -1411,7 +1412,7 @@ const BookingDetails = () => {
                                     <div className="text-right space-y-2">
                                       <div className="flex items-center gap-1">
                                         <FaStar
-                                          className="text-[#FF9900]"
+                                          className="rating_icon_color"
                                           size={18}
                                         />
                                         <span className="text-sm">
@@ -1444,7 +1445,7 @@ const BookingDetails = () => {
                                     </div>
                                   ) : (
                                     <button
-                                      className="bg-[#ff99001f] gap-2 flex items-center rounded-lg p-2 rating_icon_color"
+                                      className="bg-[var(--rating-bg)] gap-2 flex items-center rounded-lg p-2 rating_icon_color"
                                       onClick={() =>
                                         handleRateService(
                                           service?.custom_job_request_id

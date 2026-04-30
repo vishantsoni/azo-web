@@ -40,7 +40,7 @@ const ProvidersFAQsSections = ({ data }) => {
         {visibleFaqs < translatedFaqs?.length && (
           <div className="flex justify-center mt-8">
             <button
-              className="px-6 py-2 bg-[#2D2C2F] text-white font-semibold rounded-lg hover:primary_bg_color transition-colors duration-300"
+              className="px-6 py-2 dark_btn_bg text-white font-semibold rounded-lg hover:primary_bg_color transition-colors duration-300"
               onClick={loadMore}
             >
               {t("loadMore")}

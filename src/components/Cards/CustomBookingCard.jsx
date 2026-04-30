@@ -8,7 +8,7 @@ const CustomBookingCard = ({ data }) => {
 
   const service = data?.services[0];
   const statusName = statusNames[data?.status];
-  const statusColor = statusColors[data?.status?.toLowerCase()] || "#6b7280";
+  const statusColor = statusColors[data?.status?.toLowerCase()] || "var(--status-default)";
 
   const translatedCategoryName = service?.translated_category_name ? service?.translated_category_name : service?.category_name;
 

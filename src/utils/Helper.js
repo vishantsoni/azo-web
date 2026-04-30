@@ -230,6 +230,7 @@ export async function getFormattedAddress(lat, lng) {
 }
 
 export const publicRoutes = [
+  "/",
   "/about-us",
   "/contact-us",
   "/terms-and-conditions",
@@ -239,9 +240,6 @@ export const publicRoutes = [
   "/sitemap",
   "/blog-details/[slug]",
   "/become-provider",
-  // These routes are exempt from the strict 'Location Required' check in Layout.jsx,
-  // allowing them to be accessed without setting a location.
-  // HOWEVER, they are still protected by 'withAuth.jsx' which enforces User Login.
   "/general-bookings",
   "/requested-bookings",
   "/bookmarks",
@@ -306,13 +304,13 @@ export const convertToSlug = (text) => {
     .replace(/-+$/, ""); // remove trailing hyphens
 };
 export const statusColors = {
-  awaiting: "#f59e0b", // Yellow
-  started: "#3b82f6", // Blue
-  confirmed: "#10b981", // Green
-  booking_ended: "#6b7280", // Gray
-  cancelled: "#ef4444", // Red
-  rescheduled: "#f97316", // Orange
-  completed: "#0b9000", // Dark Green
+  awaiting: "var(--status-awaiting)",
+  started: "var(--status-started)",
+  confirmed: "var(--status-confirmed)",
+  booking_ended: "var(--status-ended)",
+  cancelled: "var(--status-cancelled)",
+  rescheduled: "var(--status-rescheduled)",
+  completed: "var(--status-completed)",
 };
 
 export const statusNames = {
@@ -332,9 +330,9 @@ export const customJobStatusNames = {
 };
 
 export const customJobStatusColors = {
-  pending: "#f59e0b", // Yellow
-  cancelled: "#ef4444", // Red
-  booked: "#0b9000", // Dark Green
+  pending: "var(--status-awaiting)",
+  cancelled: "var(--status-cancelled)",
+  booked: "var(--status-completed)",
 };
 
 export const paymentModes = [

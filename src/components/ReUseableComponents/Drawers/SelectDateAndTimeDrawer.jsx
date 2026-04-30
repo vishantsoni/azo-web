@@ -313,7 +313,7 @@ const SelectDateAndTimeDrawer = ({
                   </div>
                   {/* Display selected time slot message if available */}
                   {selectedTimeSlotMessage && (
-                    <span className="w-full text-center text-sm bg-[#FFEEC5] p-2 rounded-md text-[#B39651] dark:bg-[#FFDA7F] mt-1 flex items-center justify-center gap-1">
+                    <span className="w-full text-center text-sm warning_banner p-2 rounded-md dark:warning_banner mt-1 flex items-center justify-center gap-1">
                       <FaInfoCircle size={16} />
                       {selectedTimeSlotMessage}
                     </span>

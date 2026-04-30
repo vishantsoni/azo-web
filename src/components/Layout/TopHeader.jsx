@@ -310,7 +310,7 @@ const TopHeader = () => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="bg-[#FFF4E5] border-b border-orange-200 text-gray-800">
+            <div className="announcement_banner border-b border-orange-200 text-gray-800">
               <div className="container mx-auto px-3 py-2">
                 <div className="flex items-center justify-between gap-3">
                   {/* Left - Message */}
@@ -388,7 +388,7 @@ const TopHeader = () => {
 
                 <button
                   onClick={toggleTheme}
-                  className="w-12 h-6 bg-[#FFFFFF52] rounded-full p-1 flex items-center justify-between cursor-pointer relative safari-fix"
+                  className="w-12 h-6 bg-[var(--toggle-btn-bg)] rounded-full p-1 flex items-center justify-between cursor-pointer relative safari-fix"
                 >
                   <div
                     className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform absolute ${theme === "dark"

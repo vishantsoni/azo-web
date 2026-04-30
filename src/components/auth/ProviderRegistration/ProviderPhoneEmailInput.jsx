@@ -199,7 +199,7 @@ const ProviderPhoneEmailInput = ({
           />
           {/* Show placeholder when phone is empty (just country code) */}
           {(!phone || phone === countryCode) && isEmailAuthEnabled && (
-            <div className="absolute text-[#0000006e] left-[30%] sm:left-[20%] top-[22%] pointer-events-none">
+            <div className="absolute text-[var(--description-text-color)] left-[30%] sm:left-[20%] top-[22%] pointer-events-none">
               {t("enterPhoneOrEmail") || "Enter phone or email"}
             </div>
           )}

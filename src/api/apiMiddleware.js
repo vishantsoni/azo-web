@@ -49,13 +49,8 @@ api.interceptors.request.use(
       const languageCode = getCurrentLanguageCode();
       config.headers['Content-Language'] = languageCode;
       
-      // Set Content-Type header dynamically
-      if (config.data instanceof FormData) {
-        config.headers['Content-Type'] = 'multipart/form-data';
-      } else {
-        config.headers['Content-Type'] = 'application/json';
-        config.headers['Accept'] = 'application/json';
-      }
+      // Set Content-Type header
+      config.headers['Content-Type'] = 'multipart/form-data';
       return config;
     } catch (error) {
       console.error('Error in token retrieval:', error);

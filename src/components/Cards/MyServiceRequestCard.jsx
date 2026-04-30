@@ -9,12 +9,13 @@ const MyServiceRequestCard = ({ data }) => {
 
   const statusName = customJobStatusNames[data?.status];
   const statusColor =
-    customJobStatusColors[data?.status?.toLowerCase()] || "#6b7280";
+    customJobStatusColors[data?.status?.toLowerCase()] || "var(--status-default)";
   const remainingBidsCount = data?.total_bids > 3 ? data?.total_bids - 3 : 0;
 
   const translatedCategoryName = data?.translated_category_name ? data?.translated_category_name : data?.category_name;
   
   return (
+    <CustomLink href={`/my-service-request-details/${data?.id}`} className="block">
     <div className="border rounded-lg p-3 md:p-4 flex flex-col gap-4 card_bg shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -70,13 +71,12 @@ const MyServiceRequestCard = ({ data }) => {
         ) : (
           <p className="description_color">{t("noBidsAvailable")}</p>
         )}
-        <CustomLink href={`/my-service-request-details/${data?.id}`}>
         <button className="light_bg_color primary_text_color px-4 py-2 rounded-md font-medium w-full">
           {t("viewDetails")}
         </button>
-        </CustomLink>
       </div>
     </div>
+    </CustomLink>
   );
 };
 

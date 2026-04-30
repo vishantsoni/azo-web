@@ -15,6 +15,7 @@ import { getBecomeProviderSetttingsApi } from "@/api/apiRoutes";
 import Loader from "../ReUseableComponents/Loader";
 import GetProviderApp from "./GetProviderApp";
 import { useSelector } from "react-redux";
+import withAuth from "../Layout/withAuth";
 
 const ProviderPage = () => {
   const settingsData = useSelector((state) => state?.settingsData);
@@ -116,4 +117,4 @@ const ProviderPage = () => {
   );
 };
 
-export default ProviderPage;
+export default withAuth(ProviderPage);

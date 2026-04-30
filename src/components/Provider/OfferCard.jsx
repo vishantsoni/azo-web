@@ -1,6 +1,7 @@
 import React from "react";
 import CustomImageTag from "../ReUseableComponents/CustomImageTag";
 import { useTranslation } from "../Layout/TranslationContext";
+import { useSelector } from "react-redux";
 
 const OfferCard = ({
   offer,
@@ -12,10 +13,22 @@ const OfferCard = ({
 
   const translatedOfferMessage = offer?.translated_message || offer?.message;
 
+  const settings = useSelector((state) => state.settingsData?.settings);
+  const generalSettings = settings?.general_settings;
+  const currencySymbol = generalSettings?.currency;
+
   const t = useTranslation();
 
+  const MONTH_KEYS = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
+  ];
+
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-GB"); // Format: DD/MM/YYYY
+    // API returns dates in DD-MM-YYYY format
+    const [day, month, year] = date.split("-");
+    const monthName = t(MONTH_KEYS[parseInt(month, 10) - 1]);
+    return `${parseInt(day, 10)} ${monthName} ${year}`;
   };
 
   const offerDetails = [
@@ -23,17 +36,17 @@ const OfferCard = ({
       text: translatedOfferMessage,
     },
     offer?.minimum_order_amount > 0 && {
-      text: `${t("offerIsApplicableOnMinimumBookingValueOf")} $${offer.minimum_order_amount}`,
+      text: `${t("offerIsApplicableOnMinimumBookingValueOf")} ${offer.minimum_order_amount}`,
     },
     offer?.max_discount_amount > 0 && {
-      text: `${t("maximumInstantDiscountOf")} $${offer.max_discount_amount}`,
+      text: `${t("maximumInstantDiscountOf")} ${currencySymbol}${offer.max_discount_amount}`,
     },
     offer?.start_date &&
-      offer?.end_date && {
-        text: `${t("offerValidFromTo")} ${formatDate(offer.start_date)} ${t("to")} ${formatDate(
-          offer.end_date
-        )}`,
-      },
+    offer?.end_date && {
+      text: `${t("offerValidFromTo")} ${formatDate(offer.start_date)} ${t("to")} ${formatDate(
+        offer.end_date
+      )}`,
+    },
     offer?.no_of_repeat_usage > 1 && {
       text: `${t("offerValidMaxTimesDuringCampaignPeriod")} ${offer.no_of_repeat_usage} ${t("timesDuringCampaignPeriod")}`,
     },
@@ -45,9 +58,8 @@ const OfferCard = ({
 
   return (
     <div
-      className={`border rounded-lg p-4 w-full flex items-start gap-4 card_bg hover:border_color custom-shadow transition-all duration-150 ${
-        isApplied ? "border_color" : ""
-      }`}
+      className={`border rounded-lg p-4 w-full flex items-start gap-4 card_bg hover:border_color custom-shadow transition-all duration-150 ${isApplied ? "border_color" : ""
+        }`}
     >
       {/* Left: Image */}
       <div className="relative aspect-square w-16 flex-shrink-0">

@@ -27,7 +27,7 @@ const ProviderServiceCard = ({ title, description, imageUrl, number }) => {
       {/* Index - 65x65 */}
       <div className="flex-shrink-0 w-[45px] h-[45px] sm:w-[55px] sm:h-[55px] md:w-[65px] md:h-[65px] flex items-center justify-center">
         <span
-          className="font-semibold text-[18px] sm:text-[22px] md:text-[28px] text-[#2121219E]"
+          className="font-semibold text-[18px] sm:text-[22px] md:text-[28px] description_color"
           style={{ fontFamily: "Lexend, sans-serif" }}
         >
           {number.toString().padStart(2, "0")}

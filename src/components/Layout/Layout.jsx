@@ -27,6 +27,7 @@ import BottomNavigation from "./BottomNavigation";
 import { usePathname } from "next/navigation";
 import { useRoutePrefetch } from "@/hooks/useRoutePrefetch";
 import { useInitialLoad } from "@/hooks/useInitialLoad";
+import { useLanguage } from "@/hooks/useLanguage";
 import React from "react";
 
 // Define the Layout component
@@ -35,7 +36,6 @@ const Layout = ({ children }) => {
   useRoutePrefetch();
   const isInitialLoad = useInitialLoad();
   const locationData = useSelector((state) => state?.location);
-  const settingsData = useSelector((state) => state?.settingsData?.settings);
   const reduxTheme = useSelector(selectTheme);
 
   const router = useRouter();
@@ -50,6 +50,7 @@ const Layout = ({ children }) => {
   const [cookieDescription, setCookieDescription] = useState("");
 
   const isHomePage = pathname === "/";
+  const isLandingPage = pathname === "/home";
   const isProviderPage = pathname === "/providers";
   const isServicePage = pathname === "/services";
   const isProfilePage = pathname === "/profile";
@@ -230,9 +231,7 @@ const Layout = ({ children }) => {
     (state) => state.translation.currentLanguage
   );
   const defaultLang = useSelector((state) => state.translation.defaultLanguage);
-  const availableLanguages = useSelector(
-    (state) => state.translation.availableLanguages
-  );
+  const { languages: availableLanguages } = useLanguage();
 
   // Handle language from URL or set default
   useEffect(() => {
@@ -297,7 +296,7 @@ const Layout = ({ children }) => {
     if (isTabletOrDesktop) return true;
 
     // On mobile, only show footer on home page
-    return isMobile && isHomePage && isBecomeProviderPage;
+    return isMobile && (isLandingPage || isBecomeProviderPage);
   };
 
   if (settingsError) {

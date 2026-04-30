@@ -21,6 +21,7 @@ import { buildLanguageAwareKey } from "@/lib/react-query-client";
 import SomethingWentWrong from "../ReUseableComponents/Error/SomethingWentWrong";
 import NoDataFound from "../ReUseableComponents/Error/NoDataFound";
 import { useTranslation } from "../Layout/TranslationContext";
+import withAuth from "../Layout/withAuth";
 
 const HomePage = () => {
   const dispatch = useDispatch();
@@ -215,4 +216,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default withAuth(HomePage);

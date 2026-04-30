@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/AllProviders/QueryProvider";
 import RouteProgressBar from "@/components/ReUseableComponents/RouteProgressBar";
+import ThemeColorApplier from "@/components/ThemeColorApplier";
 import {
   logClarityEvent,
   checkClarityStatus,
@@ -105,6 +106,7 @@ export default function App({ Component, pageProps }) {
       <ErrorBoundary>
         <QueryProvider>
           <ThemeProvider attribute="class">
+            <ThemeColorApplier />
             <main className={font.className}>
               {/* Global service worker navigation listener for browser notification clicks */}
               <ServiceWorkerNavigationListener />

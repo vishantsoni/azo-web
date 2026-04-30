@@ -29,27 +29,13 @@ const BlockedProviderSkeleton = () => {
     ));
 };
 
-const BlockedProvidersModal = ({ isOpen, onClose, blockedProviders, onUnblock, selectedChatTab, setBlockedStatus, fetchChatMessages }) => {
+const BlockedProvidersModal = ({ isOpen, onClose, blockedProviders, isLoading, onUnblock, selectedChatTab, setBlockedStatus, fetchChatMessages }) => {
     const t = useTranslation();
-    const [isLoading, setIsLoading] = useState(true);
-    const [localBlockedProviders, setLocalBlockedProviders] = useState([]);
-
-    // Update local state when blockedProviders prop changes
-    useEffect(() => {
-        if (blockedProviders?.length > 0) {
-            setLocalBlockedProviders(blockedProviders);
-        }
-    }, [blockedProviders]);
 
     // Enhanced unblock handler to update both modal and chat states
     const handleUnblock = async (provider) => {
         try {
             await onUnblock(provider);
-
-            // Update local state by removing the unblocked provider
-            setLocalBlockedProviders(prev =>
-                prev.filter(p => p.id !== provider.id)
-            );
 
             // If this is the currently selected chat, update its blocked status
             if (selectedChatTab?.partner_id === provider.id) {
@@ -65,7 +51,7 @@ const BlockedProvidersModal = ({ isOpen, onClose, blockedProviders, onUnblock, s
             }
 
             // Close modal if this was the last blocked provider
-            if (localBlockedProviders.length <= 1) {
+            if (blockedProviders.length <= 1) {
                 onClose();
             }
         } catch (error) {
@@ -73,16 +59,6 @@ const BlockedProvidersModal = ({ isOpen, onClose, blockedProviders, onUnblock, s
         }
     };
 
-    // Show loading skeleton for 1 second when modal opens
-    useEffect(() => {
-        if (isOpen) {
-            setIsLoading(true);
-            const timer = setTimeout(() => {
-                setIsLoading(false);
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -102,9 +78,9 @@ const BlockedProvidersModal = ({ isOpen, onClose, blockedProviders, onUnblock, s
                         <div className="space-y-3 sm:space-y-4">
                             <BlockedProviderSkeleton />
                         </div>
-                    ) : localBlockedProviders?.length > 0 ? (
+                    ) : blockedProviders?.length > 0 ? (
                         <div className="space-y-3 sm:space-y-4">
-                            {localBlockedProviders.map((provider) => {
+                            {blockedProviders.map((provider) => {
 
                                 const translatedProviderName = provider?.translated_provider_name ? provider?.translated_provider_name : provider?.provider_name;
                                 const translatedReason = provider?.translated_reason ? provider?.translated_reason : provider?.reason;

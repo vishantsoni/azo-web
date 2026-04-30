@@ -336,7 +336,7 @@ const ProviderDetails = () => {
             <div className="sticky top-36">
               <div className="flex flex-col gap-4">
                 {/* Service Details */}
-                <div className="rounded-[18px] bg-[#F5FAFF] dark:card_bg shadow-sm border border-gray-200">
+                <div className="rounded-[18px] provider_info_card dark:card_bg shadow-sm border border-gray-200">
                   <div className=" overflow-hidden p-6 pb-0">
                     <CustomImageTag
                       src={providerData?.banner_image}

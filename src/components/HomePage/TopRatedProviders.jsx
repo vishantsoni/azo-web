@@ -7,6 +7,7 @@ import "swiper/css/scrollbar"; // Import Swiper scrollbar CSS
 import { useRTL } from "@/utils/Helper";
 import TopRatedProviderCard from "../Cards/TopRatedProviderCard";
 import CommanHeadline from "../ReUseableComponents/CommanHeadline";
+import CustomLink from "../ReUseableComponents/CustomLink";
 
 const TopRatedProviders = ({ data }) => {
   const swiperRef = useRef(null);
@@ -82,7 +83,9 @@ const TopRatedProviders = ({ data }) => {
           >
             {filteredProviders.map((provider, index) => (
               <SwiperSlide key={index}>
-                <TopRatedProviderCard provider={provider} />
+                <CustomLink href={`/provider-details/${provider?.slug}`} title={provider?.company_name}>
+                  <TopRatedProviderCard provider={provider} />
+                </CustomLink>
               </SwiperSlide>
             ))}
           </Swiper>

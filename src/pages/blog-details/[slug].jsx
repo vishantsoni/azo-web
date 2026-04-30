@@ -17,6 +17,7 @@ if (process.env.NEXT_PUBLIC_ENABLE_SEO === "true") {
     const languageCode = context.query?.lang || "en";
     try {
       const seoData = await fetchSeoSettings("blog-details", slug, languageCode);
+      seoData.props.slug = slug || "";
       return seoData;
     } catch (error) {
       console.error("Error fetching SEO data:", error);
@@ -39,7 +40,7 @@ const index = ({
   twitterImage,
   slug,
 }) => {
-  const pageUrl = `${process.env.NEXT_PUBLIC_WEB_URL}/blog-details/${slug}`;
+  const pageUrl = slug ? `${process.env.NEXT_PUBLIC_WEB_URL}/blog-details/${slug}` : `${process.env.NEXT_PUBLIC_WEB_URL}/blog-details`;
 
   return (
     <>

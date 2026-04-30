@@ -70,8 +70,23 @@ export default function Document({ langCode = 'en' }) {
         <link rel="preconnect" href="https://apis.google.com" /> */}
 
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0277fa" />
-        <meta name="google-site-verification" content="DcluCI_ddcA_Bf65e-cR9X22WpGX3cbU8ck-k46EeeA" />
+        {/* theme-color reads --primary-color CSS variable from globals.css automatically */}
+        <meta name="theme-color" content="#0277fa" id="pwa-theme-color" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+              try {
+                var color = getComputedStyle(document.documentElement)
+                  .getPropertyValue('--primary-color').trim();
+                if (color) {
+                  var meta = document.getElementById('pwa-theme-color');
+                  if (meta) meta.setAttribute('content', color);
+                }
+              } catch(e) {}
+            })();`,
+          }}
+        />
+        <meta name="google-site-verification" content="xxxxxxxxxxxxxxxxxxxxxxx" />
 
         <script async defer src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAP_PLACE_API_KEY}&libraries=places&loading=async`}></script>
 
@@ -83,13 +98,13 @@ export default function Document({ langCode = 'en' }) {
         ></script>
 
         {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-J4RWHNVBG0"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=xxxxxxxxxxxxxx"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-J4RWHNVBG0');`,
+            gtag('config', 'xxxxxxxxxxxxxx');`,
           }}
         />
 
@@ -101,7 +116,7 @@ export default function Document({ langCode = 'en' }) {
               c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
               t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
               y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-            })(window, document, "clarity", "script", "tqx6d1owbd");`,
+            })(window, document, "clarity", "script", "xxxxxxxxxxxxxx");`,
           }}
         />
 

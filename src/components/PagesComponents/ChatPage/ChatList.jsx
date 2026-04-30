@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import BlockedProvidersModal from "./BlockedProvidersModal";
 import { RiUserForbidFill } from "react-icons/ri";
+import { MdLock } from "react-icons/md";
 
 const ChatListSkeleton = () => {
   return Array(5).fill(0).map((_, index) => (
@@ -28,11 +29,14 @@ const ChatList = ({
   filterType,
   isLoading,
   blockedProviders,
+  isFetchingBlockedProviders,
   onUnblockProvider,
   onGetBlockedProviders,
   setBlockedStatus,
   fetchChatMessages,
-  tabTotals
+  tabTotals,
+  allowPreBookingChat = true,
+  allowPostBookingChat = true,
 }) => {
   const t = useTranslation();
   const isRTL = useRTL();
@@ -102,29 +106,44 @@ const ChatList = ({
 
         {/* Filter Tabs */}
         <div className="flex border-t">
+          {/* Pre-booking (Enquiries) tab */}
           <button
-            onClick={() => onFilterChange('pre_booking')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium border-b-2 transition-colors ${filterType === 'pre_booking'
-              ? 'border_color primary_text_color'
-              : 'border-transparent text-gray-500'
-              }`}
+            onClick={allowPreBookingChat ? () => onFilterChange('pre_booking') : undefined}
+            disabled={!allowPreBookingChat}
+            title={!allowPreBookingChat ? t("preBookingChatIsDisabled") : undefined}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium border-b-2 transition-colors ${
+              !allowPreBookingChat
+                ? 'border-transparent text-gray-400 cursor-not-allowed opacity-60'
+                : filterType === 'pre_booking'
+                  ? 'border_color primary_text_color'
+                  : 'border-transparent text-gray-500'
+            }`}
           >
+            {!allowPreBookingChat && <MdLock size={14} />}
             {t("enquiries")}
-            {tabTotals?.pre_booking !== undefined && (
+            {allowPreBookingChat && tabTotals?.pre_booking !== undefined && (
               <span className={filterType === 'pre_booking' ? "primary_text_color" : "text-gray-500"}>
                 ({tabTotals.pre_booking})
               </span>
             )}
           </button>
+
+          {/* Post-booking (Bookings) tab */}
           <button
-            onClick={() => onFilterChange('booking')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium border-b-2 transition-colors ${filterType === 'booking'
-              ? 'border_color primary_text_color'
-              : 'border-transparent text-gray-500'
-              }`}
+            onClick={allowPostBookingChat ? () => onFilterChange('booking') : undefined}
+            disabled={!allowPostBookingChat}
+            title={!allowPostBookingChat ? t("postBookingChatIsDisabled") : undefined}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium border-b-2 transition-colors ${
+              !allowPostBookingChat
+                ? 'border-transparent text-gray-400 cursor-not-allowed opacity-60'
+                : filterType === 'booking'
+                  ? 'border_color primary_text_color'
+                  : 'border-transparent text-gray-500'
+            }`}
           >
+            {!allowPostBookingChat && <MdLock size={14} />}
             {t("bookings")}
-            {tabTotals?.booking !== undefined && (
+            {allowPostBookingChat && tabTotals?.booking !== undefined && (
               <span className={filterType === 'booking' ? "primary_text_color" : "text-gray-500"}>
                 ({tabTotals.booking})
               </span>
@@ -216,6 +235,7 @@ const ChatList = ({
         isOpen={showBlockedModal}
         onClose={() => setShowBlockedModal(false)}
         blockedProviders={blockedProviders}
+        isLoading={isFetchingBlockedProviders}
         onUnblock={onUnblockProvider}
         selectedChatTab={selectedChatTab}
         setBlockedStatus={setBlockedStatus}
